@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -45,11 +44,6 @@ public class Gateway {
         return types;
     }
 
-<<<<<<< HEAD
-   /* public boolean insertDemande(Demande demande) {
-        String sql = "INSERT INTO demande (numero, datedebut, matricule, notype, immat, duree, etat) " +
-                     "VALUES (DEFAULT, ?, ?, ?, NULL, ?, ?)";
-=======
     // Authenticate user
     public Personne login(String matricule, String password) {
         String sql = "SELECT * FROM personne WHERE matricule = ? AND password = ?";
@@ -98,7 +92,6 @@ public class Gateway {
     public boolean insertDemande(Demande demande) {
         String sql = "INSERT INTO demande (numero, datereserv, datedebut, matricule, notype, immat, duree, etat) " +
                 "VALUES (?, ?, ?, ?, ?, NULL, ?, ?)";
->>>>>>> 2f27357f0143ce89d232d4d3cafa8334798634de
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, demande.getNumero()); // numero calculé par getNextNumero()
@@ -114,16 +107,6 @@ public class Gateway {
         } catch (SQLException e) {
             System.err.println("Erreur insertion demande : " + e.getMessage());
             return false;
-<<<<<<< HEAD
-        }    
-    }*/
-    /*public Personne authentifier(String matricule, String password) {
-    // faire une requête SQL : SELECT * FROM personne WHERE matricule=? AND motdepasse=?
-    // Si trouvé, renvoyer l'objet Personne
-    // Sinon, null
-}*/
-}
-=======
         }
     }
 
@@ -142,4 +125,3 @@ public class Gateway {
     }
 
 }
->>>>>>> 2f27357f0143ce89d232d4d3cafa8334798634de
