@@ -1,6 +1,5 @@
 package com.example.reservation;
 import java.time.LocalDate;
-import java.util.Date;
 
 public class Demande {
     private LocalDate dateReserv;
@@ -24,7 +23,14 @@ public class Demande {
         this.dateretoureffectif = dateretoureffectif;
         this.etat = etat;
     }
+<<<<<<< HEAD
    
+=======
+    
+    public void setNumero(int newNumero){
+        this.numero=newNumero;
+    }
+>>>>>>> 2f27357f0143ce89d232d4d3cafa8334798634de
 
     public LocalDate getDateReserv() {
         return dateReserv;
@@ -35,7 +41,11 @@ public class Demande {
     }
 
     public LocalDate getDateDebut() {
+<<<<<<< HEAD
        return dateDebut;
+=======
+        return dateDebut;   
+>>>>>>> 2f27357f0143ce89d232d4d3cafa8334798634de
     }
 
     public Personne getPersonne() {

@@ -2,6 +2,7 @@ package com.example.reservation;
 
 import java.util.Scanner;
 
+<<<<<<< HEAD
 public class App {
 
     // Affiche le menu principal
@@ -101,5 +102,14 @@ public class App {
         } while (choixPrincipal != 0);
 
         sc.close();
+=======
+public class App 
+{
+    public static void main( String[] args )
+    {
+        System.out.println( "Welcome to Vehicle Reservation System!" );
+        Authentication auth = new Authentication();
+        Personne user = auth.getUser();
+>>>>>>> 2f27357f0143ce89d232d4d3cafa8334798634de
     }
 }

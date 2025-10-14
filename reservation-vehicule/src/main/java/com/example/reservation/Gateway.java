@@ -1,6 +1,13 @@
 package com.example.reservation;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class Gateway {
@@ -24,7 +31,7 @@ public class Gateway {
         String query = "SELECT * FROM type";
 
         try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+                ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
                 int id = rs.getInt("id");
@@ -38,22 +45,76 @@ public class Gateway {
         return types;
     }
 
+<<<<<<< HEAD
    /* public boolean insertDemande(Demande demande) {
         String sql = "INSERT INTO demande (numero, datedebut, matricule, notype, immat, duree, etat) " +
                      "VALUES (DEFAULT, ?, ?, ?, NULL, ?, ?)";
+=======
+    // Authenticate user
+    public Personne login(String matricule, String password) {
+        String sql = "SELECT * FROM personne WHERE matricule = ? AND password = ?";
+        Personne user;
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, matricule);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                // User found, create Personne object
+                // Fetch service details
 
-        try (PreparedStatement stmt = connexion.prepareStatement(sql)) {
-            stmt.setString(1, demande.getDateDebut());
-            stmt.setString(2, demande.getPersonne().getMatricule());
-            stmt.setInt(3, demande.getType().getNumero());
-            stmt.setInt(4, demande.getDuree());
-            stmt.setString(5, demande.getEtat());
+                user = new Personne(
+                        rs.getString("matricule"),
+                        rs.getString("nom"),
+                        rs.getString("telephone"),
+                        getServiceByNumero(rs.getInt("noservice")),
+                        rs.getString("password"));
+                return user;
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la connexion : " + e.getMessage());
+        }
+        return null; // Authentication failed
+    }
+
+    // Retrieve a service by its numero
+    public Service getServiceByNumero(int numero) {
+        String sql = "SELECT * FROM service WHERE numero = ?";
+        Service service = null;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, numero);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                service = new Service(
+                        rs.getInt("numero"),
+                        rs.getString("libelle"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération du service : " + e.getMessage());
+        }
+        return service;
+    }
+
+    public boolean insertDemande(Demande demande) {
+        String sql = "INSERT INTO demande (numero, datereserv, datedebut, matricule, notype, immat, duree, etat) " +
+                "VALUES (?, ?, ?, ?, ?, NULL, ?, ?)";
+>>>>>>> 2f27357f0143ce89d232d4d3cafa8334798634de
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, demande.getNumero()); // numero calculé par getNextNumero()
+            stmt.setObject(2, demande.getDateReserv()); // datereserv
+            stmt.setObject(3, demande.getDateDebut()); // dateDebut
+            stmt.setString(4, demande.getPersonne().getMatricule()); // matricule
+            stmt.setInt(5, demande.getType().getNumero()); // notype
+            stmt.setInt(6, demande.getDuree()); // duree
+            stmt.setString(7, demande.getEtat()); // etat
 
             int lignes = stmt.executeUpdate();
             return lignes > 0; // true si au moins une ligne insérée
         } catch (SQLException e) {
             System.err.println("Erreur insertion demande : " + e.getMessage());
             return false;
+<<<<<<< HEAD
         }    
     }*/
     /*public Personne authentifier(String matricule, String password) {
@@ -62,3 +123,23 @@ public class Gateway {
     // Sinon, null
 }*/
 }
+=======
+        }
+    }
+
+    public int getNextNumero(LocalDate dateReserv) {
+        String sql = "SELECT COALESCE(MAX(numero), 0) + 1 AS next_numero FROM demande WHERE datereserv = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setObject(1, dateReserv);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("next_numero");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+}
+>>>>>>> 2f27357f0143ce89d232d4d3cafa8334798634de
