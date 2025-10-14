@@ -9,10 +9,10 @@ public class DemandeService {
         this.gateway = gateway;
     }
 
-    public boolean creerDemande(Personne personne, Type type, LocalDate dateDebut, int duree) {
+   /* public boolean creerDemande(Personne personne, Type type, LocalDate dateDebut, int duree) {
         // Crée un objet demande
         Demande demande = new Demande(LocalDate.now(), numero:null, dateDebut, personne, type, vehicule:null, duree, dateretoureffectif:null, "demandé")
         // Appelle la Gateway pour insérer dans la BDD
         return gateway.insertDemande(demande);
-    }
+    }*/
 }

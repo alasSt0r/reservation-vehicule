@@ -24,9 +24,9 @@ public class Demande {
         this.dateretoureffectif = dateretoureffectif;
         this.etat = etat;
     }
-    aaaaa
+   
 
-    public Date getDateReserv() {
+    public LocalDate getDateReserv() {
         return dateReserv;
     }
 
@@ -34,8 +34,8 @@ public class Demande {
         return numero;
     }
 
-    public Date getDateDebut() {
-        return dateDebut;
+    public LocalDate getDateDebut() {
+       return dateDebut;
     }
 
     public Personne getPersonne() {
@@ -54,7 +54,7 @@ public class Demande {
         return duree;
     }
 
-    public Date getDateretoureffectif() {
+    public LocalDate getDateretoureffectif() {
         return dateretoureffectif;
     }
 

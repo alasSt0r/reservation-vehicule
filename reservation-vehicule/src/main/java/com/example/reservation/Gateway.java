@@ -38,7 +38,7 @@ public class Gateway {
         return types;
     }
 
-    public boolean insertDemande(Demande demande) {
+   /* public boolean insertDemande(Demande demande) {
         String sql = "INSERT INTO demande (numero, datedebut, matricule, notype, immat, duree, etat) " +
                      "VALUES (DEFAULT, ?, ?, ?, NULL, ?, ?)";
 
@@ -55,10 +55,10 @@ public class Gateway {
             System.err.println("Erreur insertion demande : " + e.getMessage());
             return false;
         }    
-    }
-    public Personne authentifier(String matricule, String password) {
+    }*/
+    /*public Personne authentifier(String matricule, String password) {
     // faire une requête SQL : SELECT * FROM personne WHERE matricule=? AND motdepasse=?
     // Si trouvé, renvoyer l'objet Personne
     // Sinon, null
-}
+}*/
 }
