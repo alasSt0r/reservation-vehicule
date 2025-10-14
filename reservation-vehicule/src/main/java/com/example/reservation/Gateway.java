@@ -46,7 +46,7 @@ public class Gateway {
 
     // Authenticate user
     public Personne login(String matricule, String password) {
-        String sql = "SELECT * FROM personne WHERE matricule = ? AND password = ?";
+        String sql = "SELECT matricule,nom,telephone,noservice,password FROM personne WHERE matricule = ? AND password = ?";
         Personne user;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, matricule);
