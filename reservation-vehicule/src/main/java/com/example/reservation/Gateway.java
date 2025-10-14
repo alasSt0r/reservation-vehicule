@@ -38,4 +38,27 @@ public class Gateway {
         return types;
     }
 
+    public boolean insertDemande(Demande demande) {
+        String sql = "INSERT INTO demande (numero, datedebut, matricule, notype, immat, duree, etat) " +
+                     "VALUES (DEFAULT, ?, ?, ?, NULL, ?, ?)";
+
+        try (PreparedStatement stmt = connexion.prepareStatement(sql)) {
+            stmt.setString(1, demande.getDateDebut());
+            stmt.setString(2, demande.getPersonne().getMatricule());
+            stmt.setInt(3, demande.getType().getNumero());
+            stmt.setInt(4, demande.getDuree());
+            stmt.setString(5, demande.getEtat());
+
+            int lignes = stmt.executeUpdate();
+            return lignes > 0; // true si au moins une ligne insérée
+        } catch (SQLException e) {
+            System.err.println("Erreur insertion demande : " + e.getMessage());
+            return false;
+        }    
+    }
+    public Personne authentifier(String matricule, String password) {
+    // faire une requête SQL : SELECT * FROM personne WHERE matricule=? AND motdepasse=?
+    // Si trouvé, renvoyer l'objet Personne
+    // Sinon, null
+}
 }

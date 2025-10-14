@@ -1,18 +1,19 @@
 package com.example.reservation;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Demande {
-    private Date dateReserv;
+    private LocalDate dateReserv;
     private int numero;
-    private Date dateDebut;
+    private LocalDate dateDebut;
     private Personne personne;
     private Type type;
     private Vehicule vehicule;
     private int duree;
-    private Date dateretoureffectif;
+    private LocalDate dateretoureffectif;
     private String etat;
 
-    public Demande(Date dateReserv, int numero, Date dateDebut, Personne personne, Type type, Vehicule vehicule, int duree, Date dateretoureffectif, String etat) {
+    public Demande(LocalDate dateReserv, int numero, LocalDate dateDebut, Personne personne, Type type, Vehicule vehicule, int duree, LocalDate dateretoureffectif, String etat) {
         this.dateReserv = dateReserv;
         this.numero = numero;
         this.dateDebut = dateDebut;
@@ -23,6 +24,7 @@ public class Demande {
         this.dateretoureffectif = dateretoureffectif;
         this.etat = etat;
     }
+    aaaaa
 
     public Date getDateReserv() {
         return dateReserv;
