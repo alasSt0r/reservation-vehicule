@@ -23,6 +23,10 @@ public class Demande {
         this.dateretoureffectif = dateretoureffectif;
         this.etat = etat;
     }
+    
+    public void setNumero(int newNumero){
+        this.numero=newNumero;
+    }
 
     public LocalDate getDateReserv() {
         return dateReserv;
