@@ -24,9 +24,12 @@ public class Demande {
         this.dateretoureffectif = dateretoureffectif;
         this.etat = etat;
     }
-    aaaaa
+    
+    public void setNumero(int newNumero){
+        this.numero=newNumero;
+    }
 
-    public Date getDateReserv() {
+    public LocalDate getDateReserv() {
         return dateReserv;
     }
 
@@ -34,7 +37,7 @@ public class Demande {
         return numero;
     }
 
-    public Date getDateDebut() {
+    public LocalDate getDateDebut() {
         return dateDebut;
     }
 
@@ -54,7 +57,7 @@ public class Demande {
         return duree;
     }
 
-    public Date getDateretoureffectif() {
+    public LocalDate getDateretoureffectif() {
         return dateretoureffectif;
     }
 
