@@ -65,7 +65,7 @@ public class Gateway {
                 return user;
             }
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la connexion : " + e.getMessage());
+            System.err.println((Colors.boldRed("Erreur lors de la connexion : ") + e.getMessage()));
         }
         return null; // Authentication failed
     }

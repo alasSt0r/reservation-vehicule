@@ -13,16 +13,16 @@ public class Authentication {
         isAuthenticated = false;
         Gateway gateway = new Gateway();
         while (!isAuthenticated) {
-            System.out.print("Enter Matricule: ");
+            System.out.print(Colors.bold("Enter Matricule: "));
             matricule = stdin.nextLine();
-            System.out.print("Enter Password: ");
+            System.out.print(Colors.bold("Enter Password: "));
             password = stdin.nextLine();
             user = gateway.login(matricule, password);
             if (user != null) {
                 isAuthenticated = true;
-                System.out.println("Authentication successful. Welcome " + user.getNom());
+                System.out.println(Colors.boldGreen("Authentication successful. Welcome " + user.getNom() + "!"));
             } else {
-                System.out.println("Authentication failed. Invalid matricule or password. Please try again.");
+                System.out.println(Colors.boldRed("Authentication failed. Invalid matricule or password. Please try again."));
             }
         }
     }
