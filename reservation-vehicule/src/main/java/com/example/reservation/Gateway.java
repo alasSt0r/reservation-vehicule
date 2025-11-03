@@ -124,4 +124,96 @@ public class Gateway {
         return 1;
     }
 
+    // Get all demandes
+    public ArrayList<Demande> getAllDemandes() {
+        ArrayList<Demande> demandes = new ArrayList<>();
+        String query = "SELECT * FROM demande";
+        try (Statement stmt = connection.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                // Fetch demande details and create Demande objects
+                int numero = rs.getInt("numero");
+                LocalDate dateReserv = rs.getObject("datereserv", LocalDate.class);
+                LocalDate dateDebut = rs.getObject("datedebut", LocalDate.class);
+                String matricule = rs.getString("matricule");
+                int notype = rs.getInt("notype");
+                String immat = rs.getString("immat");
+                int duree = rs.getInt("duree");
+                String etat = rs.getString("etat");
+
+                // Fetch linked objects required by Demande constructor
+                Personne personne = getPersonneByMatricule(matricule);
+                Type type = getTypeByNumero(notype);
+                // Vehicule retrieval is optional; return null if not available
+                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmat(immat) : null;
+
+                // If Demande stores a computed end date, compute it (assumes end = start + duree days)
+                LocalDate dateFin = (dateDebut != null) ? dateDebut.plusDays(duree) : null;
+
+                Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, vehicule, duree, dateFin, etat);
+                demandes.add(demande);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching demandes: \n" + e.getMessage());
+        }
+        return demandes;
+    }
+
+    // Helper to retrieve a Personne by matricule
+    public Personne getPersonneByMatricule(String matricule) {
+        String sql = "SELECT matricule,nom,telephone,noservice,password FROM personne WHERE matricule = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, matricule);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Personne(
+                        rs.getString("matricule"),
+                        rs.getString("nom"),
+                        rs.getString("telephone"),
+                        getServiceByNumero(rs.getInt("noservice")),
+                        rs.getString("password")
+                );
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération de la personne : " + e.getMessage());
+        }
+        return null;
+    }
+
+    // Helper to retrieve a Type by its id/numero
+    public Type getTypeByNumero(int numero) {
+        String sql = "SELECT id, libelle FROM type WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, numero);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Type(rs.getInt("id"), rs.getString("libelle"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération du type : " + e.getMessage());
+        }
+        return null;
+    }
+
+    // Helper to retrieve a Vehicule by immatriculation; return null if not found or not applicable
+    public Vehicule getVehiculeByImmat(String immat) {
+        String sql = "SELECT immat, marque, modele, annee, notype FROM vehicule WHERE immat = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, immat);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Type type = getTypeByNumero(rs.getInt("notype"));
+                return new Vehicule(
+                        rs.getString("immat"),
+                        rs.getString("marque"),
+                        rs.getString("modele"),
+                        type
+                );
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération du véhicule : " + e.getMessage());
+        }
+        return null;
+    }
 }

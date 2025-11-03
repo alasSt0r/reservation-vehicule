@@ -1,5 +1,6 @@
 package com.example.reservation;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class App {
@@ -52,6 +53,7 @@ public class App {
             System.out.println("1 - Voir les demandes en cours");
             System.out.println("2 - Modifier une demande");
             System.out.println("3 - Voir toutes les demandes");
+            System.out.println("4 - Accepter une demande");
             System.out.println("0 - Quitter");
             System.out.print("Votre choix : ");
             choixP = lireChoix(sc);
@@ -62,13 +64,31 @@ public class App {
                 case 3:
                     System.out.println("→ Cette fonctionnalité sera implémentée plus tard.");
                     break;
+                case 4:
+                    System.out.println(Colors.bold("→ Acceptation d’une demande"));
+                    break;
                 case 0:
-                    System.out.println("→ Déconnexion...");
+                    System.out.println(Colors.bold("→ Déconnexion..."));
                     break;
                 default:
-                    System.out.println("Choix invalide, veuillez réessayer.");
+                    System.out.println(Colors.boldRed("Choix invalide, veuillez réessayer."));
             }
         } while (choixP != 0);
+    }
+
+    public static void accepterDemande(Scanner sc) {
+
+        Gateway gateway = new Gateway();
+        ArrayList<Demande> demandes = gateway.getAllDemandes();
+        System.out.println(Colors.bold("Demandes en cours :"));
+        for (Demande d : demandes) {
+            System.out.println(d);
+        }
+
+        System.out.print(Colors.bold("Entrez le numéro de la demande à accepter : "));
+        int numeroDemande = lireChoix(sc);
+        // Logique pour accepter la demande via DemandeService
+        System.out.println(Colors.boldGreen("Demande numéro " + numeroDemande + " acceptée avec succès."));
     }
 
     public static void main(String[] args) {
@@ -78,7 +98,7 @@ public class App {
         Personne user = auth.getUser();
         String service = user.getService().getLibelle();
 
-        System.out.println("Utilisateur connecté : " + user.getNom() + " (" + service + ")");
+        System.out.println(Colors.bold("Utilisateur connecté : " + user.getNom() + " (" + service + ")"));
 
         // Redirection selon le service
         if (service.equalsIgnoreCase("dev")) {
@@ -86,7 +106,7 @@ public class App {
         } else if (service.equalsIgnoreCase("gestionVehicule")) {
             menuPersonnel(sc);
         } else {
-            System.out.println("Service inconnu. Accès refusé.");
+            System.out.println(Colors.boldRed("Service inconnu. Accès refusé."));
         }
 
         System.out.println("Merci d’avoir utilisé le système !");
