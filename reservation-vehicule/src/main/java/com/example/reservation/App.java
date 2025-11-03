@@ -62,7 +62,7 @@ public class App {
                 case 1:
                 case 2:
                 case 3:
-                    System.out.println("→ Cette fonctionnalité sera implémentée plus tard.");
+                    afficherDemandes(sc);
                     break;
                 case 4:
                     accepterDemande(sc);
@@ -93,6 +93,17 @@ public class App {
         } else {
             System.out.println(Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + numeroDemande + "."));
         }
+    }
+
+    public static void afficherDemandes(Scanner sc) {
+        Gateway gateway = new Gateway();
+        ArrayList<Demande> demandes = gateway.getAllDemandes();
+        System.out.println(Colors.bold("Toutes les demandes :"));
+        for (Demande d : demandes) {
+            System.out.println(d.toString());
+        }
+        System.out.println(Colors.bold("Fin de la liste des demandes. Appuyez sur Entrée pour continuer..."));
+        sc.nextLine();
     }
 
     public static void main(String[] args) {

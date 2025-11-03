@@ -77,7 +77,7 @@ public class Demande {
                 ", vehicule=" + (vehicule == null ? "null" : vehicule.getImmatriculation()) +
                 ", duree=" + duree +
                 ", dateretoureffectif=" + dateretoureffectif +
-                ", etat='" + etat + '\'' +
+                ", etat='" + ( etat.equals("acceptée") ? Colors.green(etat) : etat) + '\'' +
                 '}';
     }
 }
