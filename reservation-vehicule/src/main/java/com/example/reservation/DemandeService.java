@@ -16,4 +16,18 @@ public class DemandeService {
         Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, null, duree, null, "demandée");
         return gateway.insertDemande(demande);
     }
+
+    public boolean accepterDemande(int numero) {
+        Demande demande = gateway.getDemandeByNumero(numero);
+        if (demande == null) {
+            System.out.println("Demande introuvable.");
+            return false;
+        }
+        if (!demande.getEtat().equals("demandée")) {
+            System.out.println("La demande ne peut pas être acceptée car elle est dans l'état : " + demande.getEtat());
+            return false;
+        }
+        demande.setEtat("acceptée");
+        return gateway.updateDemande(demande);
+    }
 }

@@ -63,4 +63,21 @@ public class Demande {
     public String getEtat() {
         return etat;
     }
+
+    public void setEtat(String etat) {
+        this.etat = etat;
+    }
+
+    public String toString() {
+        return  "dateReserv=" + dateReserv +
+                ", numero=" + numero +
+                ", dateDebut=" + dateDebut +
+                ", personne=" + personne.getNom() +
+                ", type=" + type.getLibelle() +
+                ", vehicule=" + (vehicule == null ? "null" : vehicule.getImmatriculation()) +
+                ", duree=" + duree +
+                ", dateretoureffectif=" + dateretoureffectif +
+                ", etat='" + etat + '\'' +
+                '}';
+    }
 }

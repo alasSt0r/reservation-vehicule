@@ -65,7 +65,7 @@ public class App {
                     System.out.println("→ Cette fonctionnalité sera implémentée plus tard.");
                     break;
                 case 4:
-                    System.out.println(Colors.bold("→ Acceptation d’une demande"));
+                    accepterDemande(sc);
                     break;
                 case 0:
                     System.out.println(Colors.bold("→ Déconnexion..."));
@@ -79,16 +79,20 @@ public class App {
     public static void accepterDemande(Scanner sc) {
 
         Gateway gateway = new Gateway();
-        ArrayList<Demande> demandes = gateway.getAllDemandes();
+        DemandeService demandeService = new DemandeService(gateway);
+        ArrayList<Demande> demandes = gateway.getAllDemandesWaiting();
         System.out.println(Colors.bold("Demandes en cours :"));
         for (Demande d : demandes) {
-            System.out.println(d);
+            System.out.println(d.toString());
         }
 
         System.out.print(Colors.bold("Entrez le numéro de la demande à accepter : "));
         int numeroDemande = lireChoix(sc);
-        // Logique pour accepter la demande via DemandeService
-        System.out.println(Colors.boldGreen("Demande numéro " + numeroDemande + " acceptée avec succès."));
+        if (demandeService.accepterDemande(numeroDemande)) {
+            System.out.println(Colors.boldGreen("Demande numéro " + numeroDemande + " acceptée avec succès."));
+        } else {
+            System.out.println(Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + numeroDemande + "."));
+        }
     }
 
     public static void main(String[] args) {
