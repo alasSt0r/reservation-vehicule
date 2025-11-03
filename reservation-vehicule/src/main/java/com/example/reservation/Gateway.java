@@ -11,12 +11,12 @@ import java.util.ArrayList;
 
 public class Gateway {
     private Connection connection;
-    // private static final String DB_URL = "jdbc:postgresql://192.168.1.245:5432/slam2026_AP_mariuswassimyasmine";
-    // private static final String DB_USER = "wartel";
-    // private static final String DB_PASSWORD = "wartel";
-    private static final String DB_URL = "jdbc:postgresql://localhost:5432/reservationVehicule";
-    private static final String DB_USER = "user";
-    private static final String DB_PASSWORD = "pwd";
+     private static final String DB_URL = "jdbc:postgresql://192.168.1.245:5432/slam2026_AP_mariuswassimyasmine";
+     private static final String DB_USER = "wartel";
+     private static final String DB_PASSWORD = "wartel";
+    // private static final String DB_URL = "jdbc:postgresql://localhost:5432/reservationVehicule";
+    // private static final String DB_USER = "user";
+    // private static final String DB_PASSWORD = "pwd";
 
     public Gateway() {
         try {
