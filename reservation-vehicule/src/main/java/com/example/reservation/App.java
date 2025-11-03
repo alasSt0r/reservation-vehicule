@@ -60,6 +60,8 @@ public class App {
 
             switch (choixP) {
                 case 1:
+                    afficherDemandesEnCours(sc);
+                    break;
                 case 2:
                 case 3:
                     afficherDemandes(sc);
@@ -93,6 +95,17 @@ public class App {
         } else {
             System.out.println(Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + numeroDemande + "."));
         }
+    }
+
+    public static void afficherDemandesEnCours(Scanner sc) {
+        Gateway gateway = new Gateway();
+        ArrayList<Demande> demandes = gateway.getAllDemandesWaiting();
+        System.out.println(Colors.bold("Demandes en cours :"));
+        for (Demande d : demandes) {
+            System.out.println(d.toString());
+        }
+        System.out.println(Colors.bold("Fin de la liste des demandes en cours. Appuyez sur Entrée pour continuer..."));
+        sc.nextLine();
     }
 
     public static void afficherDemandes(Scanner sc) {
