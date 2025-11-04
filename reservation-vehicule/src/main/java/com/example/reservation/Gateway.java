@@ -18,9 +18,9 @@ public class Gateway {
     public Gateway() {
         try {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            System.out.println("Connected to the database successfully.");
+            connection.setAutoCommit(false); // Désactive l'autocommit
         } catch (SQLException e) {
-            System.out.println("Connection to database failed: \n" + e.getMessage());
+            System.err.println("Erreur de connexion à la base de données : " + e.getMessage());
         }
     }
 
@@ -94,18 +94,25 @@ public class Gateway {
                 "VALUES (?, ?, ?, ?, ?, NULL, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, demande.getNumero()); // numero calculé par getNextNumero()
-            stmt.setObject(2, demande.getDateReserv()); // datereserv
-            stmt.setObject(3, demande.getDateDebut()); // dateDebut
-            stmt.setString(4, demande.getPersonne().getMatricule()); // matricule
-            stmt.setInt(5, demande.getType().getNumero()); // notype
-            stmt.setInt(6, demande.getDuree()); // duree
-            stmt.setString(7, demande.getEtat()); // etat
+            stmt.setInt(1, demande.getNumero());
+            stmt.setDate(2, java.sql.Date.valueOf(demande.getDateReserv()));
+            stmt.setDate(3, java.sql.Date.valueOf(demande.getDateDebut()));
+            stmt.setString(4, demande.getPersonne().getMatricule());
+            stmt.setInt(5, demande.getType().getNumero());
+            stmt.setInt(6, demande.getDuree());
+            stmt.setString(7, demande.getEtat());
 
-            int lignes = stmt.executeUpdate();
-            return lignes > 0; // true si au moins une ligne insérée
+            int rowsAffected = stmt.executeUpdate();
+            connection.commit(); // Commit la transaction
+            return rowsAffected > 0;
+
         } catch (SQLException e) {
-            System.err.println("Erreur insertion demande : " + e.getMessage());
+            System.err.println("Erreur lors de l'insertion de la demande : " + e.getMessage());
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Erreur lors du rollback : " + ex.getMessage());
+            }
             return false;
         }
     }
