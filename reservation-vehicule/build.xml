@@ -15,10 +15,13 @@
         </javac>
     </target>
     <target name="jar" depends="compile">
-        <jar destfile="${jar.file}" basedir="${classes.dir}">
+        <jar destfile="${jar.file}" compress="true">
             <manifest>
                 <attribute name="Main-Class" value="com.example.reservation.App"/>
             </manifest>
+            <fileset dir="${classes.dir}" includes="**/*"/>
+            <!-- inclut le contenu des JARs dans lib/ directement dans le JAR final -->
+            <zipgroupfileset dir="${lib.dir}" includes="**/*.jar"/>
         </jar>
     </target>
     <target name="run" depends="compile">
