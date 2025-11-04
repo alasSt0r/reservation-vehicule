@@ -11,13 +11,13 @@ import java.util.ArrayList;
 import java.sql.Types;
 import java.sql.Date;
 
-
 public class Gateway {
     private Connection connection;
     private static final String DB_URL = "jdbc:postgresql://192.168.1.245:5432/slam2026_AP_mariuswassimyasmine";
     private static final String DB_USER = "wartel";
     private static final String DB_PASSWORD = "wartel";
-    // private static final String DB_URL = "jdbc:postgresql://localhost:5432/reservationVehicule";
+    // private static final String DB_URL =
+    // "jdbc:postgresql://localhost:5432/reservationVehicule";
     // private static final String DB_USER = "user";
     // private static final String DB_PASSWORD = "pwd";
 
@@ -130,21 +130,23 @@ public class Gateway {
         return 1;
     }
 
-
-      public Type getTypeById(int id) {
+    public Type getTypeById(int id) {
         try {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM type WHERE id = ?");
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Type(
-                    rs.getInt("id"),
-                    rs.getString("libelle")
-                );
+                        rs.getInt("id"),
+                        rs.getString("libelle"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();}
-    //Get all demandes
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Get all demandes
     public ArrayList<Demande> getAllDemandes() {
         ArrayList<Demande> demandes = new ArrayList<>();
         String query = "SELECT * FROM demande";
@@ -168,10 +170,12 @@ public class Gateway {
                 Type type = getTypeByNumero(notype);
                 Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmat(immat) : null;
 
-                // If Demande stores a computed end date, compute it (assumes end = start + duree days)
+                // If Demande stores a computed end date, compute it (assumes end = start +
+                // duree days)
                 LocalDate dateFin = (dateDebut != null) ? dateDebut.plusDays(duree) : null;
 
-                Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, vehicule, duree, dateFin, etat);
+                Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, vehicule, duree, dateFin,
+                        etat);
                 demandes.add(demande);
             }
         } catch (SQLException e) {
@@ -204,10 +208,12 @@ public class Gateway {
                 // Vehicule retrieval is optional; return null if not available
                 Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmat(immat) : null;
 
-                // If Demande stores a computed end date, compute it (assumes end = start + duree days)
+                // If Demande stores a computed end date, compute it (assumes end = start +
+                // duree days)
                 LocalDate dateFin = (dateDebut != null) ? dateDebut.plusDays(duree) : null;
 
-                Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, vehicule, duree, dateFin, etat);
+                Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, vehicule, duree, dateFin,
+                        etat);
                 demandes.add(demande);
             }
         } catch (SQLException e) {
@@ -228,8 +234,7 @@ public class Gateway {
                         rs.getString("nom"),
                         rs.getString("telephone"),
                         getServiceByNumero(rs.getInt("noservice")),
-                        rs.getString("password")
-                );
+                        rs.getString("password"));
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération de la personne : " + e.getMessage());
@@ -238,35 +243,27 @@ public class Gateway {
     }
 
     public Vehicule getVehiculeByImmatriculation(String immatriculation) {
-    try {
-        PreparedStatement ps = connection.prepareStatement(
-            "SELECT * FROM vehicule WHERE immat = ?"
-        );
-        ps.setString(1, immatriculation);
-        ResultSet rs = ps.executeQuery();
+        try {
+            PreparedStatement ps = connection.prepareStatement(
+                    "SELECT * FROM vehicule WHERE immat = ?");
+            ps.setString(1, immatriculation);
+            ResultSet rs = ps.executeQuery();
 
-        if (rs.next()) {
-            String marque = rs.getString("marque");
-            String modele = rs.getString("modele");
-            int idType = rs.getInt("numero");
+            if (rs.next()) {
+                String marque = rs.getString("marque");
+                String modele = rs.getString("modele");
+                int idType = rs.getInt("numero");
 
-     
-            Type type = getTypeById(idType);
+                Type type = getTypeById(idType);
 
-            return new Vehicule(immatriculation, marque, modele, type);
+                return new Vehicule(immatriculation, marque, modele, type);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return null;
     }
-    return null;
-}
-
-
-
-
-
-
 
     // Helper to retrieve a Type by its id/numero
     public Type getTypeByNumero(int numero) {
@@ -283,7 +280,8 @@ public class Gateway {
         return null;
     }
 
-    // Helper to retrieve a Vehicule by immatriculation; return null if not found or not applicable
+    // Helper to retrieve a Vehicule by immatriculation; return null if not found or
+    // not applicable
     public Vehicule getVehiculeByImmat(String immat) {
         String sql = "SELECT immat, marque, modele, annee, notype FROM vehicule WHERE immat = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -295,8 +293,7 @@ public class Gateway {
                         rs.getString("immat"),
                         rs.getString("marque"),
                         rs.getString("modele"),
-                        type
-                );
+                        type);
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération du véhicule : " + e.getMessage());
@@ -304,7 +301,7 @@ public class Gateway {
         return null;
     }
 
-    //get Demande by numero
+    // get Demande by numero
     public Demande getDemandeByNumero(int numero) {
         String sql = "SELECT * FROM demande WHERE numero = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -325,7 +322,8 @@ public class Gateway {
                 Type type = getTypeByNumero(notype);
                 Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmat(immat) : null;
 
-                // If Demande stores a computed end date, compute it (assumes end = start + duree days)
+                // If Demande stores a computed end date, compute it (assumes end = start +
+                // duree days)
                 LocalDate dateFin = (dateDebut != null) ? dateDebut.plusDays(duree) : null;
 
                 return new Demande(dateReserv, numero, dateDebut, personne, type, vehicule, duree, dateFin, etat);
