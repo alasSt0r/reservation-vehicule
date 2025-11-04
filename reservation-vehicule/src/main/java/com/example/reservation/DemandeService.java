@@ -21,9 +21,10 @@ public class DemandeService {
         return gateway.getDemandeByNumero(numero);
     }
 
-
     public void mettreAJourDemande(Demande demande) {
         gateway.updateDemande(demande);
+    }
+
     public boolean accepterDemande(int numero) {
         Demande demande = gateway.getDemandeByNumero(numero);
         if (demande == null) {
