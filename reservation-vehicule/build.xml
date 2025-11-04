@@ -1,0 +1,32 @@
+<project name="reservation-vehicule" default="jar" basedir=".">
+    <property name="src.dir" value="src/main/java"/>
+    <property name="build.dir" value="build"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="jar.file" value="${build.dir}/reservation-vehicule.jar"/>
+    <target name="init">
+        <mkdir dir="${classes.dir}"/>
+    </target>
+    <target name="compile" depends="init">
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false">
+            <classpath>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+    <target name="jar" depends="compile">
+        <jar destfile="${jar.file}" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="com.example.reservation.App"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="run" depends="compile">
+        <java classname="com.example.reservation.App" fork="true">
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            </classpath>
+        </java>
+    </target>
+</project>
