@@ -7,8 +7,15 @@
     <target name="init">
         <mkdir dir="${classes.dir}"/>
     </target>
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
     <target name="compile" depends="init">
         <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false">
+            <!-- cible Java 17 (major 61) -->
+            <compilerarg value="--release"/>
+            <compilerarg value="17"/>
             <classpath>
                 <fileset dir="${lib.dir}" includes="**/*.jar"/>
             </classpath>
