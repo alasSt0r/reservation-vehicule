@@ -186,7 +186,7 @@ public class Gateway {
     public Vehicule getVehiculeByImmatriculation(String immatriculation) {
     try {
         PreparedStatement ps = connection.prepareStatement(
-            "SELECT * FROM vehicule WHERE immatriculation = ?"
+            "SELECT * FROM vehicule WHERE immat = ?"
         );
         ps.setString(1, immatriculation);
         ResultSet rs = ps.executeQuery();
@@ -194,7 +194,7 @@ public class Gateway {
         if (rs.next()) {
             String marque = rs.getString("marque");
             String modele = rs.getString("modele");
-            int idType = rs.getInt("idType");
+            int idType = rs.getInt("numero");
 
      
             Type type = getTypeById(idType);
@@ -220,21 +220,21 @@ public class Gateway {
 
         if (rs.next()) {
    
-            LocalDate dateReserv = rs.getDate("dateReserv").toLocalDate();
-            LocalDate dateDebut = rs.getDate("dateDebut").toLocalDate();
+            LocalDate dateReserv = rs.getDate("datereserv").toLocalDate();
+            LocalDate dateDebut = rs.getDate("datedebut").toLocalDate();
             int duree = rs.getInt("duree");
 
             LocalDate dateRetour = null;
-            if (rs.getDate("dateRetourEffectif") != null) {
-                dateRetour = rs.getDate("dateRetourEffectif").toLocalDate();
+            if (rs.getDate("dateretoureffectif") != null) {
+                dateRetour = rs.getDate("dateretoureffectif").toLocalDate();
             }
 
             String etat = rs.getString("etat");
 
 
             String matriculePersonne = rs.getString("matricule"); // à modif selon colonne bdd
-            int idType = rs.getInt("idType");
-            String immatriculationVehicule = rs.getString("immatriculation"); 
+            int idType = rs.getInt("notype");
+            String immatriculationVehicule = rs.getString("immat"); 
 
 
             Personne personne = getPersonneByMatricule(matriculePersonne);
@@ -267,8 +267,8 @@ public class Gateway {
 public void updateDemande(Demande demande) {
     try {
         PreparedStatement ps = connection.prepareStatement(
-            "UPDATE demande SET dateDebut = ?, duree = ?, dateRetourEffectif = ?, etat = ?, " +
-            "idType = ?, immatriculationVehicule = ?, matriculePersonne = ? WHERE numero = ?"
+            "UPDATE demande SET datedebut = ?, duree = ?, dateretoureffectif = ?, etat = ?, " +
+            "notype = ?, immat = ?, matricule = ? WHERE numero = ?"
         );
 
 
