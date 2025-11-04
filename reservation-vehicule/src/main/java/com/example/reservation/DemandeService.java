@@ -17,4 +17,13 @@ public class DemandeService {
         Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, null, duree, null, "demandée");
         return gateway.insertDemande(demande);
     }
+
+    public Demande getDemandeByNumero(int numero) {
+        return gateway.getDemandeByNumero(numero);
+    }
+
+
+    public void mettreAJourDemande(Demande demande) {
+        gateway.updateDemande(demande);
+    }
 }

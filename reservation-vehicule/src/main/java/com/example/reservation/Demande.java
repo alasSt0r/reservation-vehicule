@@ -24,6 +24,8 @@ public class Demande {
         this.etat = etat;
     }
     
+  
+
     public void setNumero(int newNumero){
         this.numero=newNumero;
     }

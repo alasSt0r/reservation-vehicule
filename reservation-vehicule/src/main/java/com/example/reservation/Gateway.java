@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.sql.Types;
+import java.sql.Date;
+
 
 public class Gateway {
     private Connection connection;
@@ -123,5 +126,185 @@ public class Gateway {
         }
         return 1;
     }
+
+
+    public Personne getPersonneByMatricule(String matricule) {
+    Personne personne = null;
+
+    try {
+        PreparedStatement ps = connection.prepareStatement(
+            "SELECT p.matricule, p.nom, p.telephone, p.password, s.numero AS service_numero, s.libelle AS service_libelle " +
+            "FROM personne p " +
+            "JOIN service s ON p.service_id = s.numero " +
+            "WHERE p.matricule = ?"
+        );
+        ps.setString(1, matricule);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+        
+            Service service = new Service(
+                rs.getInt("service_numero"),
+                rs.getString("service_libelle")
+            );
+
+            personne = new Personne(
+                rs.getString("matricule"),
+                rs.getString("nom"),
+                rs.getString("telephone"),
+                service,
+                rs.getString("password")
+            );
+        }
+
+    } catch (SQLException e) {
+        System.err.println("Erreur lors de la récupération de la personne : " + e.getMessage());
+        e.printStackTrace();
+    }
+
+    return personne;
+}
+
+
+      public Type getTypeById(int id) {
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM type WHERE id = ?");
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Type(
+                    rs.getInt("id"),
+                    rs.getString("libelle")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Vehicule getVehiculeByImmatriculation(String immatriculation) {
+    try {
+        PreparedStatement ps = connection.prepareStatement(
+            "SELECT * FROM vehicule WHERE immatriculation = ?"
+        );
+        ps.setString(1, immatriculation);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            String marque = rs.getString("marque");
+            String modele = rs.getString("modele");
+            int idType = rs.getInt("idType");
+
+     
+            Type type = getTypeById(idType);
+
+            return new Vehicule(immatriculation, marque, modele, type);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+    public Demande getDemandeByNumero(int numero) {
+    Demande demande = null;
+
+    try {
+        PreparedStatement ps = connection.prepareStatement(
+            "SELECT * FROM demande WHERE numero = ?"
+        );
+        ps.setInt(1, numero);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+   
+            LocalDate dateReserv = rs.getDate("dateReserv").toLocalDate();
+            LocalDate dateDebut = rs.getDate("dateDebut").toLocalDate();
+            int duree = rs.getInt("duree");
+
+            LocalDate dateRetour = null;
+            if (rs.getDate("dateRetourEffectif") != null) {
+                dateRetour = rs.getDate("dateRetourEffectif").toLocalDate();
+            }
+
+            String etat = rs.getString("etat");
+
+
+            String matriculePersonne = rs.getString("matricule"); // à modif selon colonne bdd
+            int idType = rs.getInt("idType");
+            String immatriculationVehicule = rs.getString("immatriculation"); 
+
+
+            Personne personne = getPersonneByMatricule(matriculePersonne);
+            Type type = getTypeById(idType);
+            Vehicule vehicule = null;
+            if (immatriculationVehicule != null && !immatriculationVehicule.isEmpty()) {
+                vehicule = getVehiculeByImmatriculation(immatriculationVehicule);
+            }
+
+            demande = new Demande(
+                dateReserv,
+                numero,
+                dateDebut,
+                personne,
+                type,
+                vehicule,
+                duree,
+                dateRetour,
+                etat
+            );
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return demande;
+}
+
+public void updateDemande(Demande demande) {
+    try {
+        PreparedStatement ps = connection.prepareStatement(
+            "UPDATE demande SET dateDebut = ?, duree = ?, dateRetourEffectif = ?, etat = ?, " +
+            "idType = ?, immatriculationVehicule = ?, matriculePersonne = ? WHERE numero = ?"
+        );
+
+
+        ps.setDate(1, Date.valueOf(demande.getDateDebut()));
+        ps.setInt(2, demande.getDuree());
+
+        // dateRetourEffectif peut être null
+        if (demande.getDateretoureffectif() != null) {
+            ps.setDate(3, Date.valueOf(demande.getDateretoureffectif()));
+        } else {
+            ps.setNull(3, Types.DATE);
+        }
+
+        ps.setString(4, demande.getEtat());
+        ps.setInt(5, demande.getType().getNumero());
+
+        // le véhicule peut être null
+        if (demande.getVehicule() != null) {
+            ps.setString(6, demande.getVehicule().getImmatriculation());
+        } else {
+            ps.setNull(6, Types.VARCHAR);
+        }
+
+        ps.setString(7, demande.getPersonne().getMatricule());
+        ps.setInt(8, demande.getNumero());
+
+       
+        ps.executeUpdate();
+
+        System.out.println("demande mise à jour avec succès (numéro : " + demande.getNumero() + ")");
+
+    } catch (SQLException e) {
+        System.err.println("erreur lors de la mise à jour de la demande : " + e.getMessage());
+    }
+}
+
+
 
 }
