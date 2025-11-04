@@ -1,6 +1,5 @@
 package com.example.reservation;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class DemandeService {
@@ -25,5 +24,17 @@ public class DemandeService {
 
     public void mettreAJourDemande(Demande demande) {
         gateway.updateDemande(demande);
+    public boolean accepterDemande(int numero) {
+        Demande demande = gateway.getDemandeByNumero(numero);
+        if (demande == null) {
+            System.out.println("Demande introuvable.");
+            return false;
+        }
+        if (!demande.getEtat().equals("demandée")) {
+            System.out.println("La demande ne peut pas être acceptée car elle est dans l'état : " + demande.getEtat());
+            return false;
+        }
+        demande.setEtat("acceptée");
+        return gateway.updateDemande(demande);
     }
 }
