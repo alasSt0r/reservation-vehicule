@@ -22,14 +22,32 @@
         </javac>
     </target>
     <target name="jar" depends="compile">
+        <!-- jar normal (garde les classes/ pour debug) -->
         <jar destfile="${jar.file}" compress="true">
             <manifest>
                 <attribute name="Main-Class" value="com.example.reservation.App"/>
             </manifest>
             <fileset dir="${classes.dir}" includes="**/*"/>
-            <!-- inclut le contenu des JARs dans lib/ directement dans le JAR final -->
-            <zipgroupfileset dir="${lib.dir}" includes="**/*.jar"/>
         </jar>
+    </target>
+
+    <!-- cible qui produit un fat/uber-jar en excluant fichiers de signature META-INF problématiques -->
+    <target name="fat-jar" depends="compile">
+        <jar destfile="${jar.file}" compress="true">
+            <manifest>
+                <attribute name="Main-Class" value="com.example.reservation.App"/>
+            </manifest>
+
+            <!-- classes de ton projet -->
+            <fileset dir="${classes.dir}" includes="**/*"/>
+
+            <!-- contenu des jars de lib/ fusionné dans le jar final,
+                 on exclut les fichiers de signature et les manifests pour éviter les conflits -->
+            <zipgroupfileset dir="${lib.dir}" includes="**/*.jar" excludes="META-INF/*.SF META-INF/*.RSA META-INF/*.DSA META-INF/MANIFEST.MF"/>
+        </jar>
+
+        <!-- optionnel : supprimer le répertoire classes si tu veux ne garder que le jar -->
+        <delete dir="${classes.dir}"/>
     </target>
     <target name="run" depends="compile">
         <java classname="com.example.reservation.App" fork="true">
