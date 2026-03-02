@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.sql.Types;
-import java.sql.Date;
 
 public class Gateway {
     private Connection connection;
@@ -358,5 +356,39 @@ public class Gateway {
             System.err.println("Erreur mise à jour demande : " + e.getMessage());
             return false;
         }
+    }
+
+    public ArrayList<Vehicule> getVehiculesByType(Type type) {
+        ArrayList<Vehicule> vehicules = new ArrayList<>();
+        String query = "SELECT * FROM vehicule WHERE notype = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, type.getId());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Vehicule vehicule = new Vehicule(
+                    rs.getString("immat"), // correction ici
+                    rs.getString("marque"),
+                    rs.getString("modele"),
+                    type // ou rs.getInt("notype") selon le constructeur
+                );
+                vehicules.add(vehicule);
+            }
+        } catch (SQLException e) {
+            System.err.println(Colors.boldRed("Erreur lors de la récupération des véhicules : ") + e.getMessage());
+        }
+        return vehicules;
+    }
+
+    public boolean accepterDemande(int numeroDemande, String immatriculation) {
+        String query = "UPDATE demande SET etat = 'acceptée', immat = ? WHERE numero = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, immatriculation);
+            stmt.setInt(2, numeroDemande);
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            System.err.println(Colors.boldRed("Erreur lors de l'acceptation de la demande : ") + e.getMessage());
+        }
+        return false;
     }
 }

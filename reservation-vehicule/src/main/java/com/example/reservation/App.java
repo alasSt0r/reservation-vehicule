@@ -203,23 +203,44 @@ public class App {
     }
 
     public static void accepterDemande(Scanner sc) {
-
-        Gateway gateway = new Gateway();
-        DemandeService demandeService = new DemandeService(gateway);
-        ArrayList<Demande> demandes = gateway.getAllDemandesWaiting();
-        System.out.println(Colors.bold("Demandes en cours :"));
-        for (Demande d : demandes) {
-            System.out.println(d.toString());
-        }
-
-        System.out.print(Colors.bold("Entrez le numéro de la demande à accepter : "));
-        int numeroDemande = lireChoix(sc);
-        if (demandeService.accepterDemande(numeroDemande)) {
-            System.out.println(Colors.boldGreen("Demande numéro " + numeroDemande + " acceptée avec succès."));
-        } else {
-            System.out.println(Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + numeroDemande + "."));
-        }
+    Gateway gateway = new Gateway();
+    DemandeService demandeService = new DemandeService(gateway);
+    ArrayList<Demande> demandes = gateway.getAllDemandesWaiting();
+    System.out.println(Colors.bold("Demandes en cours :"));
+    for (int i = 0; i < demandes.size(); i++) {
+        System.out.println(i + " - " + demandes.get(i).toString());
     }
+
+    System.out.print(Colors.bold("Entrez le numéro de la demande à accepter : "));
+    int indexDemande = lireChoix(sc);
+    if (indexDemande < 0 || indexDemande >= demandes.size()) {
+        System.out.println(Colors.boldRed("Numéro de demande invalide."));
+        return;
+    }
+    Demande demande = demandes.get(indexDemande);
+    Type type = demande.getType();
+    System.out.println("Véhicules disponibles pour le type : " + type.getLibelle());
+    ArrayList<Vehicule> vehicules = gateway.getVehiculesByType(type);
+    if (vehicules.isEmpty()) {
+        System.out.println(Colors.boldRed("Aucun véhicule disponible pour ce type."));
+        return;
+    }
+    for (int i = 0; i < vehicules.size(); i++) {
+        System.out.println(i + " - " + vehicules.get(i).toString());
+    }
+    System.out.print(Colors.bold("Entrez le numéro du véhicule à associer : "));
+    int indexVehicule = lireChoix(sc);
+    if (indexVehicule < 0 || indexVehicule >= vehicules.size()) {
+        System.out.println(Colors.boldRed("Numéro de véhicule invalide."));
+        return;
+    }
+    Vehicule vehicule = vehicules.get(indexVehicule);
+    if (gateway.accepterDemande(demande.getNumero(), vehicule.getImmatriculation())) {
+        System.out.println(Colors.boldGreen("Demande numéro " + demande.getNumero() + " acceptée avec succès avec le véhicule " + vehicule.getImmatriculation() + "."));
+    } else {
+        System.out.println(Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + demande.getNumero() + "."));
+    }
+}
 
     public static void afficherDemandesEnCours(Scanner sc) {
         Gateway gateway = new Gateway();
