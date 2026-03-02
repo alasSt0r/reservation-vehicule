@@ -28,4 +28,9 @@ public class  Vehicule {
     public Type getType() {
         return type;
     }
+
+    @Override
+    public String toString() {
+        return "Immat: " + immatriculation + ", Marque: " + marque + ", Modèle: " + modele;
+    }
 }
