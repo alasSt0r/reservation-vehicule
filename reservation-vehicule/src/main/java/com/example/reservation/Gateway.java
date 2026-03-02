@@ -30,9 +30,17 @@ public class Gateway {
         }
     }
 
+    public boolean isConnected() {
+        return connection != null;
+    }
+
     // Fetch all types from the database
     public ArrayList<Type> getAllTypes() {
         ArrayList<Type> types = new ArrayList<>();
+        if (connection == null) {
+            System.err.println("Connexion BDD indisponible.");
+            return types;
+        }
         String query = "SELECT * FROM type";
 
         try (Statement stmt = connection.createStatement();
@@ -52,6 +60,10 @@ public class Gateway {
 
     // Authenticate user
     public Personne login(String matricule, String password) {
+        if (connection == null) {
+            System.err.println("Connexion BDD indisponible.");
+            return null;
+        }
         String sql = "SELECT matricule,nom,telephone,noservice,password FROM personne WHERE matricule = ? AND password = ?";
         Personne user;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -78,6 +90,10 @@ public class Gateway {
 
     // Retrieve a service by its numero
     public Service getServiceByNumero(int numero) {
+        if (connection == null) {
+            System.err.println("Connexion BDD indisponible.");
+            return null;
+        }
         String sql = "SELECT * FROM service WHERE numero = ?";
         Service service = null;
 
@@ -96,6 +112,10 @@ public class Gateway {
     }
 
     public boolean insertDemande(Demande demande) {
+        if (connection == null) {
+            System.err.println("Connexion BDD indisponible.");
+            return false;
+        }
         String sql = "INSERT INTO demande (numero, datereserv, datedebut, matricule, notype, immat, duree, etat) " +
                 "VALUES (?, ?, ?, ?, ?, NULL, ?, ?)";
 
@@ -125,6 +145,10 @@ public class Gateway {
 
     public ArrayList<Demande> getDemandesByMatricule(String matricule) {
         ArrayList<Demande> demandes = new ArrayList<>();
+        if (connection == null) {
+            System.err.println("Connexion BDD indisponible.");
+            return demandes;
+        }
         String sql = "SELECT d.numero, d.datereserv, d.datedebut, d.matricule, d.notype, d.duree, d.etat, t.libelle AS type_libelle "
                 +
                 "FROM demande d JOIN type t ON t.numero = d.notype WHERE d.matricule = ? ORDER BY d.datereserv DESC, d.numero DESC";
@@ -155,6 +179,10 @@ public class Gateway {
     }
 
     public int getNextNumero(LocalDate dateReserv) {
+        if (connection == null) {
+            System.err.println("Connexion BDD indisponible.");
+            return 1;
+        }
         String sql = "SELECT COALESCE(MAX(numero), 0) + 1 AS next_numero FROM demande WHERE datereserv = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setObject(1, dateReserv);

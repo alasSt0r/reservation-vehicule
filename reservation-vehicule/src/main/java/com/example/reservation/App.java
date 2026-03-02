@@ -13,44 +13,51 @@ public class App {
             return;
         }
 
-        System.out.println("\nTypes de véhicules disponibles :");
-        for (int i = 0; i < typesDisponibles.size(); i++) {
-            Type type = typesDisponibles.get(i);
-            System.out.println((i + 1) + " - " + type.getLibelle());
+        Type typeVehicule;
+        while (true) {
+            System.out.println("\nTypes de véhicules disponibles :");
+            for (int i = 0; i < typesDisponibles.size(); i++) {
+                Type type = typesDisponibles.get(i);
+                System.out.println((i + 1) + " - " + type.getLibelle());
+            }
+            System.out.print("Choisissez le type de véhicule : ");
+            int typeChoice = lireChoix(sc);
+            if (typeChoice >= 1 && typeChoice <= typesDisponibles.size()) {
+                typeVehicule = typesDisponibles.get(typeChoice - 1);
+                break;
+            }
+            System.out.println("Type de véhicule invalide. Veuillez réessayer.");
         }
-        System.out.print("Choisissez le type de véhicule : ");
-        int typeChoice = lireChoix(sc);
-        if (typeChoice < 1 || typeChoice > typesDisponibles.size()) {
-            System.out.println("Type de véhicule invalide.");
-            return;
-        }
-        Type typeVehicule = typesDisponibles.get(typeChoice - 1);
 
-        System.out.print("\nDate de début (format AAAA-MM-JJ) : ");
-        String dateDebutStr = sc.nextLine();
         LocalDate dateDebut;
-        try {
-            dateDebut = LocalDate.parse(dateDebutStr);
-            if (dateDebut.isBefore(LocalDate.now())) {
-                System.out.println("La date de début ne peut pas être dans le passé.");
-                return;
+        while (true) {
+            System.out.print("\nDate de début (format AAAA-MM-JJ) : ");
+            String dateDebutStr = sc.nextLine();
+            try {
+                dateDebut = LocalDate.parse(dateDebutStr);
+                if (dateDebut.isBefore(LocalDate.now())) {
+                    System.out.println("La date de début ne peut pas être dans le passé.");
+                    continue;
+                }
+                break;
+            } catch (Exception e) {
+                System.out.println("Format de date invalide.");
             }
-        } catch (Exception e) {
-            System.out.println("Format de date invalide.");
-            return;
         }
 
-        System.out.print("Durée de réservation en jours : ");
         int duree;
-        try {
-            duree = Integer.parseInt(sc.nextLine());
-            if (duree <= 0) {
-                System.out.println("La durée doit être positive.");
-                return;
+        while (true) {
+            System.out.print("Durée de réservation en jours : ");
+            try {
+                duree = Integer.parseInt(sc.nextLine());
+                if (duree <= 0) {
+                    System.out.println("La durée doit être positive.");
+                    continue;
+                }
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Durée invalide.");
             }
-        } catch (NumberFormatException e) {
-            System.out.println("Durée invalide.");
-            return;
         }
 
         boolean success = demandeService.creerDemande(utilisateur, typeVehicule, dateDebut, duree);
@@ -292,6 +299,11 @@ public class App {
 
         Authentication auth = new Authentication(sc, gateway);
         Personne user = auth.getUser();
+        if (user == null) {
+            System.err.println("Arrêt de l'application: utilisateur non authentifié.");
+            sc.close();
+            return;
+        }
         DemandeService demandeService = new DemandeService(gateway);
 
         String service = user.getService().getLibelle();

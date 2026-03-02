@@ -11,6 +11,10 @@ public class Authentication {
     public Authentication(Scanner stdin, Gateway gateway) {
         user = null;
         isAuthenticated = false;
+        if (!gateway.isConnected()) {
+            System.err.println("Impossible de démarrer: connexion à la base de données indisponible.");
+            return;
+        }
 
         while (!isAuthenticated) {
             System.out.print(Colors.bold("Enter Matricule: "));
