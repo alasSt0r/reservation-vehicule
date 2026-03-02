@@ -120,6 +120,100 @@ public class App {
         } while (choixU != 0);
     }
 
+    public static void modifierDemande() {
+    Gateway gateway = new Gateway();
+    Scanner sc = new Scanner(System.in);
+
+    System.out.print("Entrez le numéro de la demande à modifier : ");
+    int numero = Integer.parseInt(sc.nextLine());
+
+    Demande demande = gateway.getDemandeByNumero(numero);
+
+    if (demande == null) {
+        System.out.println("Aucune demande trouvée avec ce numéro.");
+        return;
+    }
+
+    System.out.println("\n Demande actuelle ");
+    System.out.println("Date de début : " + demande.getDateDebut());
+    System.out.println("Durée : " + demande.getDuree());
+    System.out.println("État : " + demande.getEtat());
+    System.out.println("Type : " + (demande.getType() != null ? demande.getType().getLibelle() : "aucun"));
+    System.out.println("Véhicule : " + (demande.getVehicule() != null ? demande.getVehicule().getImmatriculation() : "aucun"));
+    System.out.println("Personne : " + (demande.getPersonne() != null ? demande.getPersonne().getNom() : "aucune"));
+    System.out.println("Date retour effectif : " + demande.getDateretoureffectif());
+
+    System.out.println("\n Modification");
+
+
+    System.out.print("Nouvelle date de début (AAAA-MM-JJ) [laisser vide pour ne pas changer] : ");
+    String dateDebutInput = sc.nextLine();
+    LocalDate newDateDebut = dateDebutInput.isEmpty() ? demande.getDateDebut() : LocalDate.parse(dateDebutInput);
+
+
+    System.out.print("Nouvelle durée (en heures) [laisser vide pour ne pas changer] : ");
+    String dureeInput = sc.nextLine();
+    int newDuree = dureeInput.isEmpty() ? demande.getDuree() : Integer.parseInt(dureeInput);
+
+
+    System.out.print("Nouvelle date de retour effective (AAAA-MM-JJ ou vide) : ");
+    String retourInput = sc.nextLine();
+    LocalDate newDateRetour = retourInput.isEmpty() ? demande.getDateretoureffectif() : LocalDate.parse(retourInput);
+
+
+    System.out.print("Nouvel état (demandée, validée, refusée...) [laisser vide pour ne pas changer] : ");
+    String etatInput = sc.nextLine();
+    String newEtat = etatInput.isEmpty() ? demande.getEtat() : etatInput;
+
+
+    System.out.print("Nouvel ID du type de véhicule [laisser vide pour ne pas changer] : ");
+    String typeInput = sc.nextLine();
+    Type newType;
+    if (typeInput.isEmpty()) {
+        newType = demande.getType();
+    } else {
+        int idType = Integer.parseInt(typeInput);
+        newType = gateway.getTypeById(idType);
+    }
+
+    
+    System.out.print("Nouvelle immatriculation du véhicule [laisser vide pour ne pas changer] : ");
+    String immatInput = sc.nextLine();
+    Vehicule newVehicule;
+    if (immatInput.isEmpty()) {
+        newVehicule = demande.getVehicule();
+    } else {
+        newVehicule = gateway.getVehiculeByImmatriculation(immatInput);
+    }
+
+
+    System.out.print("Nouveau matricule de la personne [laisser vide pour ne pas changer] : ");
+    String matriculeInput = sc.nextLine();
+    Personne newPersonne;
+    if (matriculeInput.isEmpty()) {
+        newPersonne = demande.getPersonne();
+    } else {
+        newPersonne = gateway.getPersonneByMatricule(matriculeInput);
+    }
+
+
+    Demande updated = new Demande(
+        demande.getDateReserv(),
+        demande.getNumero(),
+        newDateDebut,
+        newPersonne,
+        newType,
+        newVehicule,
+        newDuree,
+        newDateRetour,
+        newEtat
+    );
+
+
+    gateway.updateDemande(updated);
+    System.out.println("La demande a été mise à jour avec succès !");
+}
+
     public static void menuPersonnel(Scanner sc) {
         int choixP;
         do {
@@ -127,23 +221,69 @@ public class App {
             System.out.println("1 - Voir les demandes en cours");
             System.out.println("2 - Modifier une demande");
             System.out.println("3 - Voir toutes les demandes");
+            System.out.println("4 - Accepter une demande");
             System.out.println("0 - Quitter");
             System.out.print("Votre choix : ");
             choixP = lireChoix(sc);
 
             switch (choixP) {
                 case 1:
-                case 2:
+                case 2:modifierDemande(); 
+                    break;
                 case 3:
-                    System.out.println("→ Cette fonctionnalité sera implémentée plus tard.");
+                    afficherDemandes(sc);
+                    break;
+                case 4:
+                    accepterDemande(sc);
                     break;
                 case 0:
-                    System.out.println("→ Déconnexion...");
+                    System.out.println(Colors.bold("→ Déconnexion..."));
                     break;
                 default:
-                    System.out.println("Choix invalide, veuillez réessayer.");
+                    System.out.println(Colors.boldRed("Choix invalide, veuillez réessayer."));
             }
         } while (choixP != 0);
+    }
+
+    public static void accepterDemande(Scanner sc) {
+
+        Gateway gateway = new Gateway();
+        DemandeService demandeService = new DemandeService(gateway);
+        ArrayList<Demande> demandes = gateway.getAllDemandesWaiting();
+        System.out.println(Colors.bold("Demandes en cours :"));
+        for (Demande d : demandes) {
+            System.out.println(d.toString());
+        }
+
+        System.out.print(Colors.bold("Entrez le numéro de la demande à accepter : "));
+        int numeroDemande = lireChoix(sc);
+        if (demandeService.accepterDemande(numeroDemande)) {
+            System.out.println(Colors.boldGreen("Demande numéro " + numeroDemande + " acceptée avec succès."));
+        } else {
+            System.out.println(Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + numeroDemande + "."));
+        }
+    }
+
+    public static void afficherDemandesEnCours(Scanner sc) {
+        Gateway gateway = new Gateway();
+        ArrayList<Demande> demandes = gateway.getAllDemandesWaiting();
+        System.out.println(Colors.bold("Demandes en cours :"));
+        for (Demande d : demandes) {
+            System.out.println(d.toString());
+        }
+        System.out.println(Colors.bold("Fin de la liste des demandes en cours. Appuyez sur Entrée pour continuer..."));
+        sc.nextLine();
+    }
+
+    public static void afficherDemandes(Scanner sc) {
+        Gateway gateway = new Gateway();
+        ArrayList<Demande> demandes = gateway.getAllDemandes();
+        System.out.println(Colors.bold("Toutes les demandes :"));
+        for (Demande d : demandes) {
+            System.out.println(d.toString());
+        }
+        System.out.println(Colors.bold("Fin de la liste des demandes. Appuyez sur Entrée pour continuer..."));
+        sc.nextLine();
     }
 
     public static void main(String[] args) {
@@ -156,14 +296,14 @@ public class App {
 
         String service = user.getService().getLibelle();
 
-        System.out.println("Utilisateur connecté : " + user.getNom() + " (" + service + ")");
+        System.out.println(Colors.bold("Utilisateur connecté : " + user.getNom() + " (" + service + ")"));
 
         if (service.equalsIgnoreCase("dev")) {
             menuUtilisateur(sc, user, demandeService);
         } else if (service.equalsIgnoreCase("gestionVehicule")) {
             menuPersonnel(sc);
         } else {
-            System.out.println("Service inconnu. Accès refusé.");
+            System.out.println(Colors.boldRed("Service inconnu. Accès refusé."));
         }
 
         System.out.println("Merci d’avoir utilisé le système !");
