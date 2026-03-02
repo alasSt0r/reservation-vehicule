@@ -6,6 +6,61 @@ import java.util.Scanner;
 
 public class App {
 
+    public static void creerDemande(Personne utilisateur, Scanner sc, DemandeService demandeService) {
+        ArrayList<Type> typesDisponibles = demandeService.getTypesDisponibles();
+        if (typesDisponibles.isEmpty()) {
+            System.out.println("Aucun type de véhicule disponible.");
+            return;
+        }
+
+        System.out.println("\nTypes de véhicules disponibles :");
+        for (int i = 0; i < typesDisponibles.size(); i++) {
+            Type type = typesDisponibles.get(i);
+            System.out.println((i + 1) + " - " + type.getLibelle());
+        }
+        System.out.print("Choisissez le type de véhicule : ");
+        int typeChoice = lireChoix(sc);
+        if (typeChoice < 1 || typeChoice > typesDisponibles.size()) {
+            System.out.println("Type de véhicule invalide.");
+            return;
+        }
+        Type typeVehicule = typesDisponibles.get(typeChoice - 1);
+
+        System.out.print("\nDate de début (format AAAA-MM-JJ) : ");
+        String dateDebutStr = sc.nextLine();
+        LocalDate dateDebut;
+        try {
+            dateDebut = LocalDate.parse(dateDebutStr);
+            if (dateDebut.isBefore(LocalDate.now())) {
+                System.out.println("La date de début ne peut pas être dans le passé.");
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("Format de date invalide.");
+            return;
+        }
+
+        System.out.print("Durée de réservation en jours : ");
+        int duree;
+        try {
+            duree = Integer.parseInt(sc.nextLine());
+            if (duree <= 0) {
+                System.out.println("La durée doit être positive.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Durée invalide.");
+            return;
+        }
+
+        boolean success = demandeService.creerDemande(utilisateur, typeVehicule, dateDebut, duree);
+        if (success) {
+            System.out.println("Demande créée avec succès !");
+        } else {
+            System.out.println("Erreur lors de la création de la demande.");
+        }
+    }
+
     public static int lireChoix(Scanner sc) {
         int choix;
         while (true) {
@@ -19,9 +74,25 @@ public class App {
         return choix;
     }
 
-     
+    public static void voirMesReservations(Personne user, DemandeService demandeService) {
+        ArrayList<Demande> demandes = demandeService.getDemandesUtilisateur(user.getMatricule());
+        if (demandes.isEmpty()) {
+            System.out.println("Aucune réservation trouvée.");
+            return;
+        }
 
-    public static void menuUtilisateur(Scanner sc) {
+        System.out.println("\nMes réservations :");
+        for (Demande demande : demandes) {
+            System.out.println("N°" + demande.getNumero()
+                    + " | Réservée le: " + demande.getDateReserv()
+                    + " | Début: " + demande.getDateDebut()
+                    + " | Type: " + demande.getType().getLibelle()
+                    + " | Durée: " + demande.getDuree() + " jour(s)"
+                    + " | État: " + demande.getEtat());
+        }
+    }
+
+    public static void menuUtilisateur(Scanner sc, Personne user, DemandeService demandeService) {
         int choixU;
         do {
             System.out.println(" MENU UTILISATEUR ");
@@ -33,10 +104,12 @@ public class App {
 
             switch (choixU) {
                 case 1:
-                    faireDemande();
+                    System.out.println("→ Réservation d'un véhicule...");
+                    creerDemande(user, sc, demandeService);
                     break;
                 case 2:
                     System.out.println("→ Affichage de vos réservations...");
+                    voirMesReservations(user, demandeService);
                     break;
                 case 0:
                     System.out.println("→ Déconnexion...");
@@ -46,36 +119,7 @@ public class App {
             }
         } while (choixU != 0);
     }
-    public static void faireDemande(){
-         Authentication auth = new Authentication();
-        Personne user = auth.getUser();
-        String service = user.getService().getLibelle();
-        Gateway gateway = new Gateway();          // Assure-toi que la connexion est initialisée
-        DemandeService demandeService = new DemandeService(gateway);
 
-        // Récupérer les informations de la demande via Scanner
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Entrez la date de début (AAAA-MM-JJ) :");
-        LocalDate dateDebut = LocalDate.parse(sc.nextLine());
-
-        System.out.println("Entrez le numéro du type de véhicule :");
-        int typeNumero = Integer.parseInt(sc.nextLine());
-        Type type = new Type(typeNumero, ""); // tu peux récupérer le libellé si tu veux
-
-        System.out.println("Entrez la durée (en heures) :");
-        int duree = Integer.parseInt(sc.nextLine());
-
-        // Créer la demande
-        boolean success = demandeService.creerDemande(user, type, dateDebut, duree);
-
-        if (success) {
-            System.out.println("La demande a été ajoutée avec succès !");
-        } else {
-            System.out.println("Erreur lors de l'ajout de la demande.");
-        }
-        
-        sc.close();
-    }
     public static void modifierDemande() {
     Gateway gateway = new Gateway();
     Scanner sc = new Scanner(System.in);
@@ -170,7 +214,6 @@ public class App {
     System.out.println("La demande a été mise à jour avec succès !");
 }
 
-
     public static void menuPersonnel(Scanner sc) {
         int choixP;
         do {
@@ -245,16 +288,18 @@ public class App {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        Gateway gateway = new Gateway();
 
-        Authentication auth = new Authentication();
+        Authentication auth = new Authentication(sc, gateway);
         Personne user = auth.getUser();
+        DemandeService demandeService = new DemandeService(gateway);
+
         String service = user.getService().getLibelle();
 
         System.out.println(Colors.bold("Utilisateur connecté : " + user.getNom() + " (" + service + ")"));
 
-        // Redirection selon le service
         if (service.equalsIgnoreCase("dev")) {
-            menuUtilisateur(sc);
+            menuUtilisateur(sc, user, demandeService);
         } else if (service.equalsIgnoreCase("gestionVehicule")) {
             menuPersonnel(sc);
         } else {

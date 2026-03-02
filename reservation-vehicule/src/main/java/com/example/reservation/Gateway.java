@@ -24,9 +24,9 @@ public class Gateway {
     public Gateway() {
         try {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            System.out.println("Connected to the database successfully.");
+            connection.setAutoCommit(false); // Désactive l'autocommit
         } catch (SQLException e) {
-            System.out.println("Connection to database failed: \n" + e.getMessage());
+            System.err.println("Erreur de connexion à la base de données : " + e.getMessage());
         }
     }
 
@@ -39,9 +39,9 @@ public class Gateway {
                 ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                int id = rs.getInt("id");
+                int numero = rs.getInt("numero");
                 String libelle = rs.getString("libelle");
-                types.add(new Type(id, libelle));
+                types.add(new Type(numero, libelle));
             }
         } catch (SQLException e) {
             System.out.println("Error fetching types: \n" + e.getMessage());
@@ -100,20 +100,58 @@ public class Gateway {
                 "VALUES (?, ?, ?, ?, ?, NULL, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, demande.getNumero()); // numero calculé par getNextNumero()
-            stmt.setObject(2, demande.getDateReserv()); // datereserv
-            stmt.setObject(3, demande.getDateDebut()); // dateDebut
-            stmt.setString(4, demande.getPersonne().getMatricule()); // matricule
-            stmt.setInt(5, demande.getType().getNumero()); // notype
-            stmt.setInt(6, demande.getDuree()); // duree
-            stmt.setString(7, demande.getEtat()); // etat
+            stmt.setInt(1, demande.getNumero());
+            stmt.setDate(2, java.sql.Date.valueOf(demande.getDateReserv()));
+            stmt.setDate(3, java.sql.Date.valueOf(demande.getDateDebut()));
+            stmt.setString(4, demande.getPersonne().getMatricule());
+            stmt.setInt(5, demande.getType().getNumero());
+            stmt.setInt(6, demande.getDuree());
+            stmt.setString(7, demande.getEtat());
 
-            int lignes = stmt.executeUpdate();
-            return lignes > 0; // true si au moins une ligne insérée
+            int rowsAffected = stmt.executeUpdate();
+            connection.commit(); // Commit la transaction
+            return rowsAffected > 0;
+
         } catch (SQLException e) {
-            System.err.println("Erreur insertion demande : " + e.getMessage());
+            System.err.println("Erreur lors de l'insertion de la demande : " + e.getMessage());
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Erreur lors du rollback : " + ex.getMessage());
+            }
             return false;
         }
+    }
+
+    public ArrayList<Demande> getDemandesByMatricule(String matricule) {
+        ArrayList<Demande> demandes = new ArrayList<>();
+        String sql = "SELECT d.numero, d.datereserv, d.datedebut, d.matricule, d.notype, d.duree, d.etat, t.libelle AS type_libelle "
+                +
+                "FROM demande d JOIN type t ON t.numero = d.notype WHERE d.matricule = ? ORDER BY d.datereserv DESC, d.numero DESC";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, matricule);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Type type = new Type(rs.getInt("notype"), rs.getString("type_libelle"));
+                Personne personne = new Personne(rs.getString("matricule"), "", "", null, "");
+                Demande demande = new Demande(
+                        rs.getDate("datereserv").toLocalDate(),
+                        rs.getInt("numero"),
+                        rs.getDate("datedebut").toLocalDate(),
+                        personne,
+                        type,
+                        null,
+                        rs.getInt("duree"),
+                        null,
+                        rs.getString("etat"));
+                demandes.add(demande);
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des réservations : " + e.getMessage());
+        }
+
+        return demandes;
     }
 
     public int getNextNumero(LocalDate dateReserv) {
