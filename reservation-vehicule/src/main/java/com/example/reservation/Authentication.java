@@ -1,17 +1,17 @@
 package com.example.reservation;
 
+import java.util.Scanner;
+
 public class Authentication {
     private boolean isAuthenticated = false;
     private String matricule;
     private String password;
     private Personne user;
-    private java.util.Scanner stdin;
 
-    public Authentication() {
-        this.stdin = new java.util.Scanner(System.in);
+    public Authentication(Scanner stdin, Gateway gateway) {
         user = null;
         isAuthenticated = false;
-        Gateway gateway = new Gateway();
+
         while (!isAuthenticated) {
             System.out.print("Enter Matricule: ");
             matricule = stdin.nextLine();
@@ -30,12 +30,15 @@ public class Authentication {
     public String getMatricule() {
         return matricule;
     }
+
     public String getPassword() {
         return password;
     }
+
     public boolean isAuthenticated() {
         return isAuthenticated;
     }
+
     public Personne getUser() {
         return user;
     }

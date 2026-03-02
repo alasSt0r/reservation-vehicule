@@ -1,7 +1,7 @@
 package com.example.reservation;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class DemandeService {
 
@@ -11,22 +11,20 @@ public class DemandeService {
         this.gateway = gateway;
     }
 
+    public ArrayList<Type> getTypesDisponibles() {
+        return gateway.getAllTypes();
+    }
+
+    public ArrayList<Demande> getDemandesUtilisateur(String matricule) {
+        return gateway.getDemandesByMatricule(matricule);
+    }
+
     public boolean creerDemande(Personne personne, Type type, LocalDate dateDebut, int duree) {
         LocalDate dateReserv = LocalDate.now();
         int numero = gateway.getNextNumero(dateReserv);
         Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, null, duree, null, "demandée");
 
-        // Ajout des logs
-        System.out.println("Création demande : ");
-        System.out.println("Numéro : " + numero);
-        System.out.println("Date réservation : " + dateReserv);
-        System.out.println("Date début : " + dateDebut);
-        System.out.println("Durée : " + duree);
-        System.out.println("Personne : " + personne.getNom());
-        System.out.println("Type : " + type.getLibelle());
-
         boolean result = gateway.insertDemande(demande);
-        System.out.println("Résultat insertion : " + result);
         return result;
     }
 }

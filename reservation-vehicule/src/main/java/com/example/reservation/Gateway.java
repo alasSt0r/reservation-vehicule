@@ -33,9 +33,9 @@ public class Gateway {
                 ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                int id = rs.getInt("id");
+                int numero = rs.getInt("numero");
                 String libelle = rs.getString("libelle");
-                types.add(new Type(id, libelle));
+                types.add(new Type(numero, libelle));
             }
         } catch (SQLException e) {
             System.out.println("Error fetching types: \n" + e.getMessage());
@@ -115,6 +115,37 @@ public class Gateway {
             }
             return false;
         }
+    }
+
+    public ArrayList<Demande> getDemandesByMatricule(String matricule) {
+        ArrayList<Demande> demandes = new ArrayList<>();
+        String sql = "SELECT d.numero, d.datereserv, d.datedebut, d.matricule, d.notype, d.duree, d.etat, t.libelle AS type_libelle "
+                +
+                "FROM demande d JOIN type t ON t.numero = d.notype WHERE d.matricule = ? ORDER BY d.datereserv DESC, d.numero DESC";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, matricule);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Type type = new Type(rs.getInt("notype"), rs.getString("type_libelle"));
+                Personne personne = new Personne(rs.getString("matricule"), "", "", null, "");
+                Demande demande = new Demande(
+                        rs.getDate("datereserv").toLocalDate(),
+                        rs.getInt("numero"),
+                        rs.getDate("datedebut").toLocalDate(),
+                        personne,
+                        type,
+                        null,
+                        rs.getInt("duree"),
+                        null,
+                        rs.getString("etat"));
+                demandes.add(demande);
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des réservations : " + e.getMessage());
+        }
+
+        return demandes;
     }
 
     public int getNextNumero(LocalDate dateReserv) {
