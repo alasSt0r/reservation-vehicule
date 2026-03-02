@@ -1,0 +1,31 @@
+# Java/Ant/Maven/Gradle build output
+build/
+target/
+out/
+*.class
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependency libraries
+lib/*.jar
+
+# Others
+*.swp
+*.swo
+
+# Ignore jar/war/ear generated at root
+*.jar
+*.war
+*.ear

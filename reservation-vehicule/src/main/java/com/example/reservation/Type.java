@@ -1,3 +1,4 @@
+
 package com.example.reservation;
 
 public class Type {
@@ -15,5 +16,9 @@ public class Type {
 
     public String getLibelle() {
         return libelle;
+    }
+
+    public int getId() {
+        return numero;
     }
 }

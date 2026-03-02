@@ -53,4 +53,7 @@ public class DemandeService {
         demande.setEtat("acceptée");
         return gateway.updateDemande(demande);
     }
+    public boolean accepterDemande(int numeroDemande, String immatriculation) {
+        return gateway.accepterDemande(numeroDemande, immatriculation);
+    }
 }
