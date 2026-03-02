@@ -21,13 +21,14 @@ public class DemandeService {
         return gateway.getDemandeByNumero(numero);
     }
 
-    public void mettreAJourDemande(Demande demande) {
-        gateway.updateDemande(demande);
+    public Boolean mettreAJourDemande(Demande demande) {
+        if (gateway.updateDemande(demande)) {
+            return true;
+        }
+        ;
+        return false;
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> eb5c3c2331bcf4e3a59a2d286766b8e9ff79f007
     public boolean accepterDemande(int numero) {
         Demande demande = gateway.getDemandeByNumero(numero);
         if (demande == null) {

@@ -303,7 +303,7 @@ public class Gateway {
 
     // get Demande by numero
     public Demande getDemandeByNumero(int numero) {
-        String sql = "SELECT * FROM demande WHERE numero = ?";
+        String sql = "SELECT * FROM demande WHERE numero = ? ORDER BY datereserv DESC LIMIT 1";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, numero);
             ResultSet rs = stmt.executeQuery();
@@ -336,21 +336,23 @@ public class Gateway {
 
     // Update a Demande
     public boolean updateDemande(Demande demande) {
-        String sql = "UPDATE demande SET datereserv = ?, datedebut = ?, matricule = ?, notype = ?, immat = ?, duree = ?, etat = ? WHERE numero = ?";
+        String sql = "UPDATE demande SET datedebut = ?, matricule = ?, notype = ?, immat = ?, duree = ?, etat = ? WHERE numero = ? AND datereserv = ?";
+        ;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setObject(1, demande.getDateReserv());
-            stmt.setObject(2, demande.getDateDebut());
-            stmt.setString(3, demande.getPersonne().getMatricule());
-            stmt.setInt(4, demande.getType().getNumero());
+
+            stmt.setObject(1, demande.getDateDebut());
+            stmt.setString(2, demande.getPersonne().getMatricule());
+            stmt.setInt(3, demande.getType().getNumero());
             if (demande.getVehicule() != null) {
-                stmt.setString(5, demande.getVehicule().getImmatriculation());
+                stmt.setString(4, demande.getVehicule().getImmatriculation());
             } else {
-                stmt.setNull(5, java.sql.Types.VARCHAR);
+                stmt.setNull(4, java.sql.Types.VARCHAR);
             }
-            stmt.setInt(6, demande.getDuree());
-            stmt.setString(7, demande.getEtat());
-            stmt.setInt(8, demande.getNumero());
+            stmt.setInt(5, demande.getDuree());
+            stmt.setString(6, demande.getEtat());
+            stmt.setInt(7, demande.getNumero());
+            stmt.setObject(8, demande.getDateReserv());
 
             int lignes = stmt.executeUpdate();
             return lignes > 0; // true si au moins une ligne mise à jour

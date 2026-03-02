@@ -19,8 +19,6 @@ public class App {
         return choix;
     }
 
-     
-
     public static void menuUtilisateur(Scanner sc) {
         int choixU;
         do {
@@ -46,11 +44,12 @@ public class App {
             }
         } while (choixU != 0);
     }
-    public static void faireDemande(){
-         Authentication auth = new Authentication();
+
+    public static void faireDemande() {
+        Authentication auth = new Authentication();
         Personne user = auth.getUser();
         String service = user.getService().getLibelle();
-        Gateway gateway = new Gateway();          // Assure-toi que la connexion est initialisée
+        Gateway gateway = new Gateway(); // Assure-toi que la connexion est initialisée
         DemandeService demandeService = new DemandeService(gateway);
 
         // Récupérer les informations de la demande via Scanner
@@ -73,103 +72,101 @@ public class App {
         } else {
             System.out.println("Erreur lors de l'ajout de la demande.");
         }
-        
+
         sc.close();
     }
+
     public static void modifierDemande() {
-    Gateway gateway = new Gateway();
-    Scanner sc = new Scanner(System.in);
+        Gateway gateway = new Gateway();
+        Scanner sc = new Scanner(System.in);
 
-    System.out.print("Entrez le numéro de la demande à modifier : ");
-    int numero = Integer.parseInt(sc.nextLine());
+        System.out.print("Entrez le numéro de la demande à modifier : ");
+        int numero = Integer.parseInt(sc.nextLine());
 
-    Demande demande = gateway.getDemandeByNumero(numero);
+        Demande demande = gateway.getDemandeByNumero(numero);
 
-    if (demande == null) {
-        System.out.println("Aucune demande trouvée avec ce numéro.");
-        return;
+        if (demande == null) {
+            System.out.println("Aucune demande trouvée avec ce numéro.");
+            return;
+        }
+
+        System.out.println("\n Demande actuelle ");
+        System.out.println("Date de début : " + demande.getDateDebut());
+        System.out.println("Durée : " + demande.getDuree());
+        System.out.println("État : " + demande.getEtat());
+        System.out.println("Type : " + (demande.getType() != null ? demande.getType().getLibelle() : "aucun"));
+        System.out.println(
+                "Véhicule : " + (demande.getVehicule() != null ? demande.getVehicule().getImmatriculation() : "aucun"));
+        System.out.println("Personne : " + (demande.getPersonne() != null ? demande.getPersonne().getNom() : "aucune"));
+        System.out.println("Date retour effectif : " + demande.getDateretoureffectif());
+
+        System.out.println("\n Modification");
+
+        System.out.print("Nouvelle date de début (AAAA-MM-JJ) [laisser vide pour ne pas changer] : ");
+        String dateDebutInput = sc.nextLine();
+        LocalDate newDateDebut = dateDebutInput.isEmpty() ? demande.getDateDebut() : LocalDate.parse(dateDebutInput);
+
+        System.out.print("Nouvelle durée (en heures) [laisser vide pour ne pas changer] : ");
+        String dureeInput = sc.nextLine();
+        int newDuree = dureeInput.isEmpty() ? demande.getDuree() : Integer.parseInt(dureeInput);
+
+        System.out.print("Nouvelle date de retour effective (AAAA-MM-JJ ou vide) : ");
+        String retourInput = sc.nextLine();
+        LocalDate newDateRetour = retourInput.isEmpty() ? demande.getDateretoureffectif()
+                : LocalDate.parse(retourInput);
+
+        System.out.print("Nouvel état (demandée, validée, refusée...) [laisser vide pour ne pas changer] : ");
+        String etatInput = sc.nextLine();
+        String newEtat = etatInput.isEmpty() ? demande.getEtat() : etatInput;
+
+        System.out.print("Nouvel ID du type de véhicule [laisser vide pour ne pas changer] : ");
+        String typeInput = sc.nextLine();
+        Type newType;
+        if (typeInput.isEmpty()) {
+            newType = demande.getType();
+        } else {
+            int idType = Integer.parseInt(typeInput);
+            newType = gateway.getTypeById(idType);
+        }
+
+        System.out.print("Nouvelle immatriculation du véhicule [laisser vide pour ne pas changer] : ");
+        String immatInput = sc.nextLine();
+        Vehicule newVehicule;
+        if (immatInput.isEmpty()) {
+            newVehicule = demande.getVehicule();
+        } else {
+            newVehicule = gateway.getVehiculeByImmatriculation(immatInput);
+        }
+
+        System.out.print("Nouveau matricule de la personne [laisser vide pour ne pas changer] : ");
+        String matriculeInput = sc.nextLine();
+        Personne newPersonne;
+        if (matriculeInput.isEmpty()) {
+            newPersonne = demande.getPersonne();
+        } else {
+            newPersonne = gateway.getPersonneByMatricule(matriculeInput);
+        }
+
+        Demande updated = new Demande(
+                demande.getDateReserv(),
+                demande.getNumero(),
+                newDateDebut,
+                newPersonne,
+                newType,
+                newVehicule,
+                newDuree,
+                newDateRetour,
+                newEtat);
+
+        DemandeService demandeService = new DemandeService(gateway);
+        if (demandeService.mettreAJourDemande(updated)) {
+            System.out.println(Colors.boldGreen("Demande numéro " + updated.getNumero() + " modifiée avec succès."));
+        } else {
+            System.out.println(
+                    Colors.boldRed("Erreur lors de la modification de la demande numéro " + updated.getNumero() + "."));
+        }
+
     }
-
-    System.out.println("\n Demande actuelle ");
-    System.out.println("Date de début : " + demande.getDateDebut());
-    System.out.println("Durée : " + demande.getDuree());
-    System.out.println("État : " + demande.getEtat());
-    System.out.println("Type : " + (demande.getType() != null ? demande.getType().getLibelle() : "aucun"));
-    System.out.println("Véhicule : " + (demande.getVehicule() != null ? demande.getVehicule().getImmatriculation() : "aucun"));
-    System.out.println("Personne : " + (demande.getPersonne() != null ? demande.getPersonne().getNom() : "aucune"));
-    System.out.println("Date retour effectif : " + demande.getDateretoureffectif());
-
-    System.out.println("\n Modification");
-
-
-    System.out.print("Nouvelle date de début (AAAA-MM-JJ) [laisser vide pour ne pas changer] : ");
-    String dateDebutInput = sc.nextLine();
-    LocalDate newDateDebut = dateDebutInput.isEmpty() ? demande.getDateDebut() : LocalDate.parse(dateDebutInput);
-
-
-    System.out.print("Nouvelle durée (en heures) [laisser vide pour ne pas changer] : ");
-    String dureeInput = sc.nextLine();
-    int newDuree = dureeInput.isEmpty() ? demande.getDuree() : Integer.parseInt(dureeInput);
-
-
-    System.out.print("Nouvelle date de retour effective (AAAA-MM-JJ ou vide) : ");
-    String retourInput = sc.nextLine();
-    LocalDate newDateRetour = retourInput.isEmpty() ? demande.getDateretoureffectif() : LocalDate.parse(retourInput);
-
-
-    System.out.print("Nouvel état (demandée, validée, refusée...) [laisser vide pour ne pas changer] : ");
-    String etatInput = sc.nextLine();
-    String newEtat = etatInput.isEmpty() ? demande.getEtat() : etatInput;
-
-
-    System.out.print("Nouvel ID du type de véhicule [laisser vide pour ne pas changer] : ");
-    String typeInput = sc.nextLine();
-    Type newType;
-    if (typeInput.isEmpty()) {
-        newType = demande.getType();
-    } else {
-        int idType = Integer.parseInt(typeInput);
-        newType = gateway.getTypeById(idType);
-    }
-
-    
-    System.out.print("Nouvelle immatriculation du véhicule [laisser vide pour ne pas changer] : ");
-    String immatInput = sc.nextLine();
-    Vehicule newVehicule;
-    if (immatInput.isEmpty()) {
-        newVehicule = demande.getVehicule();
-    } else {
-        newVehicule = gateway.getVehiculeByImmatriculation(immatInput);
-    }
-
-
-    System.out.print("Nouveau matricule de la personne [laisser vide pour ne pas changer] : ");
-    String matriculeInput = sc.nextLine();
-    Personne newPersonne;
-    if (matriculeInput.isEmpty()) {
-        newPersonne = demande.getPersonne();
-    } else {
-        newPersonne = gateway.getPersonneByMatricule(matriculeInput);
-    }
-
-
-    Demande updated = new Demande(
-        demande.getDateReserv(),
-        demande.getNumero(),
-        newDateDebut,
-        newPersonne,
-        newType,
-        newVehicule,
-        newDuree,
-        newDateRetour,
-        newEtat
-    );
-
-
-    gateway.updateDemande(updated);
-    System.out.println("La demande a été mise à jour avec succès !");
-}
-
 
     public static void menuPersonnel(Scanner sc) {
         int choixP;
@@ -185,7 +182,8 @@ public class App {
 
             switch (choixP) {
                 case 1:
-                case 2:modifierDemande(); 
+                case 2:
+                    modifierDemande();
                     break;
                 case 3:
                     afficherDemandes(sc);
@@ -217,7 +215,8 @@ public class App {
         if (demandeService.accepterDemande(numeroDemande)) {
             System.out.println(Colors.boldGreen("Demande numéro " + numeroDemande + " acceptée avec succès."));
         } else {
-            System.out.println(Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + numeroDemande + "."));
+            System.out.println(
+                    Colors.boldRed("Erreur lors de l'acceptation de la demande numéro " + numeroDemande + "."));
         }
     }
 
