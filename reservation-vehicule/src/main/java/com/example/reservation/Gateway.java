@@ -316,9 +316,9 @@ public class Gateway {
             if (rs.next()) {
                 String marque = rs.getString("marque");
                 String modele = rs.getString("modele");
-                int idType = rs.getInt("numero");
+                int idType = rs.getInt("notype");
 
-                Type type = getTypeById(idType);
+                Type type = getTypeByNumero(idType);
 
                 return new Vehicule(immatriculation, marque, modele, type);
             }
@@ -347,7 +347,7 @@ public class Gateway {
     // Helper to retrieve a Vehicule by immatriculation; return null if not found or
     // not applicable
     public Vehicule getVehiculeByImmat(String immat) {
-        String sql = "SELECT immat, marque, modele, annee, notype FROM vehicule WHERE immat = ?";
+        String sql = "SELECT immat, marque, modele, notype FROM vehicule WHERE immat = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, immat);
             ResultSet rs = stmt.executeQuery();

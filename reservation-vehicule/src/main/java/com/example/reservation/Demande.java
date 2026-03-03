@@ -74,12 +74,12 @@ public class Demande {
         return  "dateReserv=" + dateReserv +
                 ", numero=" + numero +
                 ", dateDebut=" + dateDebut +
-                ", personne=" + personne.getNom() +
-                ", type=" + type.getLibelle() +
-                ", vehicule=" + (vehicule == null ? "null" : vehicule.getImmatriculation()) +
+                ", personne=" + (personne != null ? personne.getNom() : "aucune") +
+                ", type=" + (type != null ? type.getLibelle() : "aucun") +
+                ", vehicule=" + (vehicule != null ? vehicule.getImmatriculation() : "aucun") +
                 ", duree=" + duree +
                 ", dateretoureffectif=" + dateretoureffectif +
-                ", etat='" + ( etat.equals("acceptée") ? Colors.green(etat) : etat) + '\'' +
+                ", etat='" + (etat != null && etat.equals("acceptée") ? Colors.green(etat) : etat) + '\'' +
                 '}';
     }
 }
