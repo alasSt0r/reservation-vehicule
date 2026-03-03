@@ -49,12 +49,14 @@
         <!-- optionnel : supprimer le répertoire classes si tu veux ne garder que le jar -->
         <delete dir="${classes.dir}"/>
     </target>
-    <target name="run" depends="compile">
-        <java classname="com.example.reservation.App" fork="true">
-            <classpath>
-                <pathelement path="${classes.dir}"/>
-                <fileset dir="${lib.dir}" includes="**/*.jar"/>
-            </classpath>
-        </java>
-    </target>
+<target name="run" depends="compile">
+    <java classname="com.example.reservation.App" fork="true" failonerror="true">
+        <classpath>
+            <pathelement path="build/classes"/>
+            <fileset dir="lib" includes="*.jar"/>
+        </classpath>
+        <sysproperty key="user.dir" value="${basedir}"/>
+        <jvmarg value="-Djava.awt.headless=true"/>
+    </java>
+</target>
 </project>
