@@ -112,8 +112,6 @@ public class App {
         System.out.println("Date retour effectif : " + demande.getDateretoureffectif());
 
         System.out.println("\n Modification");
-        System.out
-                .println("(La date de réservation ne peut pas être modifiée car elle fait partie de la clé primaire)");
 
         System.out.print("Nouvelle date de début (AAAA-MM-JJ) [laisser vide pour ne pas changer] : ");
         String dateDebutInput = sc.nextLine();
