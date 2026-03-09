@@ -1,6 +1,6 @@
 package com.example.reservation;
 
-public class  Vehicule {
+public class Vehicule {
     private String immatriculation;
     private String marque;
     private String modele;
@@ -27,5 +27,11 @@ public class  Vehicule {
 
     public Type getType() {
         return type;
+    }
+
+    @Override
+    public String toString() {
+        return "Véhicule [" + immatriculation + "] - " + marque + " " + modele +
+                " (Type: " + (type != null ? type.getLibelle() : "aucun") + ")";
     }
 }

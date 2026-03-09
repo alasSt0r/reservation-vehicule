@@ -80,17 +80,28 @@ public class App {
         Gateway gateway = new Gateway();
         Scanner sc = new Scanner(System.in);
 
-        System.out.print("Entrez le numéro de la demande à modifier : ");
+        // Afficher toutes les demandes
+        ArrayList<Demande> demandes = gateway.getAllDemandes();
+        System.out.println(Colors.bold("\nToutes les demandes :"));
+        for (Demande d : demandes) {
+            System.out.println(d.toString());
+        }
+
+        System.out.print("\nEntrez le numéro de la demande à modifier : ");
         int numero = Integer.parseInt(sc.nextLine());
 
-        Demande demande = gateway.getDemandeByNumero(numero);
+        System.out.print("Entrez la date de réservation de la demande (AAAA-MM-JJ) : ");
+        LocalDate dateReserv = LocalDate.parse(sc.nextLine());
+
+        Demande demande = gateway.getDemandeByNumeroAndDateReserv(numero, dateReserv);
 
         if (demande == null) {
-            System.out.println("Aucune demande trouvée avec ce numéro.");
+            System.out.println("Aucune demande trouvée avec ce numéro et cette date de réservation.");
             return;
         }
 
         System.out.println("\n Demande actuelle ");
+        System.out.println("Date de réservation : " + demande.getDateReserv() + " (non modifiable)");
         System.out.println("Date de début : " + demande.getDateDebut());
         System.out.println("Durée : " + demande.getDuree());
         System.out.println("État : " + demande.getEtat());
@@ -101,6 +112,8 @@ public class App {
         System.out.println("Date retour effectif : " + demande.getDateretoureffectif());
 
         System.out.println("\n Modification");
+        System.out
+                .println("(La date de réservation ne peut pas être modifiée car elle fait partie de la clé primaire)");
 
         System.out.print("Nouvelle date de début (AAAA-MM-JJ) [laisser vide pour ne pas changer] : ");
         String dateDebutInput = sc.nextLine();
@@ -129,13 +142,24 @@ public class App {
             newType = gateway.getTypeById(idType);
         }
 
-        System.out.print("Nouvelle immatriculation du véhicule [laisser vide pour ne pas changer] : ");
-        String immatInput = sc.nextLine();
         Vehicule newVehicule;
-        if (immatInput.isEmpty()) {
-            newVehicule = demande.getVehicule();
+        if (demande.getEtat().equals("acceptée")) {
+            // Afficher tous les véhicules disponibles
+            ArrayList<Vehicule> vehicules = gateway.getAllVehicules();
+            System.out.println("\nVéhicules disponibles :");
+            for (Vehicule v : vehicules) {
+                System.out.println("  " + v.toString());
+            }
+
+            System.out.print("\nNouvelle immatriculation du véhicule [laisser vide pour ne pas changer] : ");
+            String immatInput = sc.nextLine();
+            if (immatInput.isEmpty()) {
+                newVehicule = demande.getVehicule();
+            } else {
+                newVehicule = gateway.getVehiculeByImmatriculation(immatInput);
+            }
         } else {
-            newVehicule = gateway.getVehiculeByImmatriculation(immatInput);
+            newVehicule = demande.getVehicule();
         }
 
         System.out.print("Nouveau matricule de la personne [laisser vide pour ne pas changer] : ");
@@ -148,7 +172,7 @@ public class App {
         }
 
         Demande updated = new Demande(
-                demande.getDateReserv(),
+                demande.getDateReserv(), // La date de réservation ne change jamais (clé primaire)
                 demande.getNumero(),
                 newDateDebut,
                 newPersonne,
@@ -159,13 +183,12 @@ public class App {
                 newEtat);
 
         DemandeService demandeService = new DemandeService(gateway);
-        if (demandeService.mettreAJourDemande(updated)) {
+        if (demandeService.mettreAJourDemande(updated, demande.getDateReserv())) {
             System.out.println(Colors.boldGreen("Demande numéro " + updated.getNumero() + " modifiée avec succès."));
         } else {
             System.out.println(
                     Colors.boldRed("Erreur lors de la modification de la demande numéro " + updated.getNumero() + "."));
         }
-
     }
 
     public static void menuPersonnel(Scanner sc) {
