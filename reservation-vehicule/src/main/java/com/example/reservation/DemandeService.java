@@ -32,12 +32,8 @@ public class DemandeService {
         return gateway.getDemandeByNumero(numero);
     }
 
-    public Boolean mettreAJourDemande(Demande demande) {
-        if (gateway.updateDemande(demande)) {
-            return true;
-        }
-        ;
-        return false;
+    public Boolean mettreAJourDemande(Demande demande, LocalDate ancienneDateReserv) {
+        return gateway.updateDemande(demande, ancienneDateReserv);
     }
 
     public boolean accepterDemande(int numero) {
@@ -50,8 +46,9 @@ public class DemandeService {
             System.out.println("La demande ne peut pas être acceptée car elle est dans l'état : " + demande.getEtat());
             return false;
         }
+        LocalDate ancienneDateReserv = demande.getDateReserv();
         demande.setEtat("acceptée");
-        return gateway.updateDemande(demande);
+        return gateway.updateDemande(demande, ancienneDateReserv);
     }
     public boolean accepterDemande(int numeroDemande, String immatriculation) {
         return gateway.accepterDemande(numeroDemande, immatriculation);

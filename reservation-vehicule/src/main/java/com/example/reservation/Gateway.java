@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.sql.Types;
+import java.sql.Date;
 
 public class Gateway {
     private Connection connection;
@@ -22,32 +24,24 @@ public class Gateway {
     public Gateway() {
         try {
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            connection.setAutoCommit(false); // Désactive l'autocommit
+            System.out.println("Connected to the database successfully.");
         } catch (SQLException e) {
-            System.err.println("Erreur de connexion à la base de données : " + e.getMessage());
+            System.out.println("Connection to database failed: \n" + e.getMessage());
         }
-    }
-
-    public boolean isConnected() {
-        return connection != null;
     }
 
     // Fetch all types from the database
     public ArrayList<Type> getAllTypes() {
         ArrayList<Type> types = new ArrayList<>();
-        if (connection == null) {
-            System.err.println("Connexion BDD indisponible.");
-            return types;
-        }
         String query = "SELECT * FROM type";
 
         try (Statement stmt = connection.createStatement();
                 ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                int numero = rs.getInt("numero");
+                int id = rs.getInt("id");
                 String libelle = rs.getString("libelle");
-                types.add(new Type(numero, libelle));
+                types.add(new Type(id, libelle));
             }
         } catch (SQLException e) {
             System.out.println("Error fetching types: \n" + e.getMessage());
@@ -58,10 +52,6 @@ public class Gateway {
 
     // Authenticate user
     public Personne login(String matricule, String password) {
-        if (connection == null) {
-            System.err.println("Connexion BDD indisponible.");
-            return null;
-        }
         String sql = "SELECT matricule,nom,telephone,noservice,password FROM personne WHERE matricule = ? AND password = ?";
         Personne user;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -88,10 +78,6 @@ public class Gateway {
 
     // Retrieve a service by its numero
     public Service getServiceByNumero(int numero) {
-        if (connection == null) {
-            System.err.println("Connexion BDD indisponible.");
-            return null;
-        }
         String sql = "SELECT * FROM service WHERE numero = ?";
         Service service = null;
 
@@ -110,77 +96,27 @@ public class Gateway {
     }
 
     public boolean insertDemande(Demande demande) {
-        if (connection == null) {
-            System.err.println("Connexion BDD indisponible.");
-            return false;
-        }
         String sql = "INSERT INTO demande (numero, datereserv, datedebut, matricule, notype, immat, duree, etat) " +
                 "VALUES (?, ?, ?, ?, ?, NULL, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, demande.getNumero());
-            stmt.setDate(2, java.sql.Date.valueOf(demande.getDateReserv()));
-            stmt.setDate(3, java.sql.Date.valueOf(demande.getDateDebut()));
-            stmt.setString(4, demande.getPersonne().getMatricule());
-            stmt.setInt(5, demande.getType().getNumero());
-            stmt.setInt(6, demande.getDuree());
-            stmt.setString(7, demande.getEtat());
+            stmt.setInt(1, demande.getNumero()); // numero calculé par getNextNumero()
+            stmt.setObject(2, demande.getDateReserv()); // datereserv
+            stmt.setObject(3, demande.getDateDebut()); // dateDebut
+            stmt.setString(4, demande.getPersonne().getMatricule()); // matricule
+            stmt.setInt(5, demande.getType().getNumero()); // notype
+            stmt.setInt(6, demande.getDuree()); // duree
+            stmt.setString(7, demande.getEtat()); // etat
 
-            int rowsAffected = stmt.executeUpdate();
-            connection.commit(); // Commit la transaction
-            return rowsAffected > 0;
-
+            int lignes = stmt.executeUpdate();
+            return lignes > 0; // true si au moins une ligne insérée
         } catch (SQLException e) {
-            System.err.println("Erreur lors de l'insertion de la demande : " + e.getMessage());
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                System.err.println("Erreur lors du rollback : " + ex.getMessage());
-            }
+            System.err.println("Erreur insertion demande : " + e.getMessage());
             return false;
         }
     }
 
-    public ArrayList<Demande> getDemandesByMatricule(String matricule) {
-        ArrayList<Demande> demandes = new ArrayList<>();
-        if (connection == null) {
-            System.err.println("Connexion BDD indisponible.");
-            return demandes;
-        }
-        String sql = "SELECT d.numero, d.datereserv, d.datedebut, d.matricule, d.notype, d.duree, d.etat, t.libelle AS type_libelle "
-                +
-                "FROM demande d JOIN type t ON t.numero = d.notype WHERE d.matricule = ? ORDER BY d.datereserv DESC, d.numero DESC";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, matricule);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Type type = new Type(rs.getInt("notype"), rs.getString("type_libelle"));
-                Personne personne = new Personne(rs.getString("matricule"), "", "", null, "");
-                Demande demande = new Demande(
-                        rs.getDate("datereserv").toLocalDate(),
-                        rs.getInt("numero"),
-                        rs.getDate("datedebut").toLocalDate(),
-                        personne,
-                        type,
-                        null,
-                        rs.getInt("duree"),
-                        null,
-                        rs.getString("etat"));
-                demandes.add(demande);
-            }
-        } catch (SQLException e) {
-            System.err.println("Erreur lors de la récupération des réservations : " + e.getMessage());
-        }
-
-        return demandes;
-    }
-
     public int getNextNumero(LocalDate dateReserv) {
-        if (connection == null) {
-            System.err.println("Connexion BDD indisponible.");
-            return 1;
-        }
         String sql = "SELECT COALESCE(MAX(numero), 0) + 1 AS next_numero FROM demande WHERE datereserv = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setObject(1, dateReserv);
@@ -232,7 +168,7 @@ public class Gateway {
                 // Fetch linked objects required by Demande constructor
                 Personne personne = getPersonneByMatricule(matricule);
                 Type type = getTypeByNumero(notype);
-                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmat(immat) : null;
+                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmatriculation(immat) : null;
 
                 // If Demande stores a computed end date, compute it (assumes end = start +
                 // duree days)
@@ -270,7 +206,7 @@ public class Gateway {
                 Personne personne = getPersonneByMatricule(matricule);
                 Type type = getTypeByNumero(notype);
                 // Vehicule retrieval is optional; return null if not available
-                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmat(immat) : null;
+                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmatriculation(immat) : null;
 
                 // If Demande stores a computed end date, compute it (assumes end = start +
                 // duree days)
@@ -306,29 +242,6 @@ public class Gateway {
         return null;
     }
 
-    public Vehicule getVehiculeByImmatriculation(String immatriculation) {
-        try {
-            PreparedStatement ps = connection.prepareStatement(
-                    "SELECT * FROM vehicule WHERE immat = ?");
-            ps.setString(1, immatriculation);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                String marque = rs.getString("marque");
-                String modele = rs.getString("modele");
-                int idType = rs.getInt("notype");
-
-                Type type = getTypeByNumero(idType);
-
-                return new Vehicule(immatriculation, marque, modele, type);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     // Helper to retrieve a Type by its id/numero
     public Type getTypeByNumero(int numero) {
         String sql = "SELECT numero, libelle FROM type WHERE numero = ?";
@@ -344,9 +257,8 @@ public class Gateway {
         return null;
     }
 
-    // Helper to retrieve a Vehicule by immatriculation; return null if not found or
-    // not applicable
-    public Vehicule getVehiculeByImmat(String immat) {
+    // Helper to retrieve a Vehicule by immatriculation from the vehicule table
+    public Vehicule getVehiculeByImmatriculation(String immat) {
         String sql = "SELECT immat, marque, modele, notype FROM vehicule WHERE immat = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, immat);
@@ -384,7 +296,7 @@ public class Gateway {
                 // Fetch linked objects required by Demande constructor
                 Personne personne = getPersonneByMatricule(matricule);
                 Type type = getTypeByNumero(notype);
-                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmat(immat) : null;
+                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmatriculation(immat) : null;
 
                 // If Demande stores a computed end date, compute it (assumes end = start +
                 // duree days)
@@ -398,10 +310,35 @@ public class Gateway {
         return null;
     }
 
-    // Update a Demande
-    public boolean updateDemande(Demande demande) {
+    // Get all vehicules from the database
+    public ArrayList<Vehicule> getAllVehicules() {
+        ArrayList<Vehicule> vehicules = new ArrayList<>();
+        String sql = "SELECT immat, marque, modele, notype FROM vehicule";
+
+        try (Statement stmt = connection.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Type type = getTypeByNumero(rs.getInt("notype"));
+                Vehicule vehicule = new Vehicule(
+                        rs.getString("immat"),
+                        rs.getString("marque"),
+                        rs.getString("modele"),
+                        type);
+                vehicules.add(vehicule);
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des véhicules : " + e.getMessage());
+        }
+
+        return vehicules;
+    }
+
+    // Update a Demande via la clé primaire (numero, datereserv)
+    // Note: datereserv ne peut pas être modifiée car elle fait partie de la clé
+    // primaire
+    public boolean updateDemande(Demande demande, LocalDate ancienneDateReserv) {
         String sql = "UPDATE demande SET datedebut = ?, matricule = ?, notype = ?, immat = ?, duree = ?, etat = ? WHERE numero = ? AND datereserv = ?";
-        ;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
 
@@ -411,12 +348,12 @@ public class Gateway {
             if (demande.getVehicule() != null) {
                 stmt.setString(4, demande.getVehicule().getImmatriculation());
             } else {
-                stmt.setNull(4, java.sql.Types.VARCHAR);
+                stmt.setNull(4, Types.VARCHAR);
             }
             stmt.setInt(5, demande.getDuree());
             stmt.setString(6, demande.getEtat());
             stmt.setInt(7, demande.getNumero());
-            stmt.setObject(8, demande.getDateReserv());
+            stmt.setObject(8, ancienneDateReserv);
 
             int lignes = stmt.executeUpdate();
             return lignes > 0; // true si au moins une ligne mise à jour
@@ -424,6 +361,40 @@ public class Gateway {
             System.err.println("Erreur mise à jour demande : " + e.getMessage());
             return false;
         }
+    }
+
+    // Méthode pour récupérer une demande par clé primaire (numéro + date de
+    // réservation)
+    public Demande getDemandeByNumeroAndDateReserv(int numero, LocalDate dateReserv) {
+        String sql = "SELECT * FROM demande WHERE numero = ? AND datereserv = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, numero);
+            stmt.setObject(2, dateReserv);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                // Fetch demande details and create Demande object
+                LocalDate dateDebut = rs.getObject("datedebut", LocalDate.class);
+                String matricule = rs.getString("matricule");
+                int notype = rs.getInt("notype");
+                String immat = rs.getString("immat");
+                int duree = rs.getInt("duree");
+                String etat = rs.getString("etat");
+
+                // Fetch linked objects required by Demande constructor
+                Personne personne = getPersonneByMatricule(matricule);
+                Type type = getTypeByNumero(notype);
+                Vehicule vehicule = (immat != null && !immat.isEmpty()) ? getVehiculeByImmatriculation(immat) : null;
+
+                // If Demande stores a computed end date, compute it (assumes end = start +
+                // duree days)
+                LocalDate dateFin = (dateDebut != null) ? dateDebut.plusDays(duree) : null;
+
+                return new Demande(dateReserv, numero, dateDebut, personne, type, vehicule, duree, dateFin, etat);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching demande: \n" + e.getMessage());
+        }
+        return null;
     }
 
     public ArrayList<Vehicule> getVehiculesByType(Type type) {
@@ -434,17 +405,53 @@ public class Gateway {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Vehicule vehicule = new Vehicule(
-                    rs.getString("immat"), // correction ici
-                    rs.getString("marque"),
-                    rs.getString("modele"),
-                    type // ou rs.getInt("notype") selon le constructeur
-                );
+                        rs.getString("immat"),
+                        rs.getString("marque"),
+                        rs.getString("modele"),
+                        type);
                 vehicules.add(vehicule);
             }
         } catch (SQLException e) {
-            System.err.println(Colors.boldRed("Erreur lors de la récupération des véhicules : ") + e.getMessage());
+            System.err.println("Erreur lors de la récupération des véhicules : " + e.getMessage());
         }
         return vehicules;
+    }
+
+    public boolean isConnected() {
+        return connection != null;
+    }
+
+    public ArrayList<Demande> getDemandesByMatricule(String matricule) {
+        ArrayList<Demande> demandes = new ArrayList<>();
+        if (connection == null) {
+            System.err.println("Connexion BDD indisponible.");
+            return demandes;
+        }
+        String sql = "SELECT d.numero, d.datereserv, d.datedebut, d.matricule, d.notype, d.duree, d.etat, t.libelle AS type_libelle "
+                +
+                "FROM demande d JOIN type t ON t.numero = d.notype WHERE d.matricule = ? ORDER BY d.datereserv DESC, d.numero DESC";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, matricule);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Type type = new Type(rs.getInt("notype"), rs.getString("type_libelle"));
+                Personne personne = new Personne(rs.getString("matricule"), "", "", null, "");
+                Demande demande = new Demande(
+                        rs.getDate("datereserv").toLocalDate(),
+                        rs.getInt("numero"),
+                        rs.getDate("datedebut").toLocalDate(),
+                        personne,
+                        type,
+                        null,
+                        rs.getInt("duree"),
+                        null,
+                        rs.getString("etat"));
+                demandes.add(demande);
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la récupération des réservations : " + e.getMessage());
+        }
+        return demandes;
     }
 
     public boolean accepterDemande(int numeroDemande, String immatriculation) {
