@@ -6,10 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.sql.Types;
-import java.sql.Date;
 
 public class Gateway {
     private Connection connection;
@@ -39,9 +38,9 @@ public class Gateway {
                 ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                int id = rs.getInt("id");
+                int numero = rs.getInt("numero");
                 String libelle = rs.getString("libelle");
-                types.add(new Type(id, libelle));
+                types.add(new Type(numero, libelle));
             }
         } catch (SQLException e) {
             System.out.println("Error fetching types: \n" + e.getMessage());
@@ -96,22 +95,18 @@ public class Gateway {
     }
 
     public boolean insertDemande(Demande demande) {
-        String sql = "INSERT INTO demande (numero, datereserv, datedebut, matricule, notype, immat, duree, etat) " +
-                "VALUES (?, ?, ?, ?, ?, NULL, ?, ?)";
+        String sql = "SELECT public.creer_demande_fn(?, ?, ?, ?) AS numero_cree";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, demande.getNumero()); // numero calculé par getNextNumero()
-            stmt.setObject(2, demande.getDateReserv()); // datereserv
-            stmt.setObject(3, demande.getDateDebut()); // dateDebut
-            stmt.setString(4, demande.getPersonne().getMatricule()); // matricule
-            stmt.setInt(5, demande.getType().getNumero()); // notype
-            stmt.setInt(6, demande.getDuree()); // duree
-            stmt.setString(7, demande.getEtat()); // etat
+            stmt.setString(1, demande.getPersonne().getMatricule());
+            stmt.setInt(2, demande.getType().getNumero());
+            stmt.setObject(3, demande.getDateDebut());
+            stmt.setInt(4, demande.getDuree());
 
-            int lignes = stmt.executeUpdate();
-            return lignes > 0; // true si au moins une ligne insérée
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() && rs.getInt("numero_cree") > 0;
         } catch (SQLException e) {
-            System.err.println("Erreur insertion demande : " + e.getMessage());
+            System.err.println("Erreur appel fonction creer_demande_fn : " + e.getMessage());
             return false;
         }
     }
@@ -132,12 +127,12 @@ public class Gateway {
 
     public Type getTypeById(int id) {
         try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM type WHERE id = ?");
+            PreparedStatement ps = connection.prepareStatement("SELECT numero, libelle FROM type WHERE numero = ?");
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Type(
-                        rs.getInt("id"),
+                        rs.getInt("numero"),
                         rs.getString("libelle"));
             }
         } catch (SQLException e) {
@@ -401,7 +396,7 @@ public class Gateway {
         ArrayList<Vehicule> vehicules = new ArrayList<>();
         String query = "SELECT * FROM vehicule WHERE notype = ?";
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, type.getId());
+            stmt.setInt(1, type.getNumero());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Vehicule vehicule = new Vehicule(

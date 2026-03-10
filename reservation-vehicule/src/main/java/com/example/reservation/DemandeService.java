@@ -21,8 +21,7 @@ public class DemandeService {
 
     public boolean creerDemande(Personne personne, Type type, LocalDate dateDebut, int duree) {
         LocalDate dateReserv = LocalDate.now();
-        int numero = gateway.getNextNumero(dateReserv);
-        Demande demande = new Demande(dateReserv, numero, dateDebut, personne, type, null, duree, null, "demandée");
+        Demande demande = new Demande(dateReserv, 0, dateDebut, personne, type, null, duree, null, "demandée");
 
         boolean result = gateway.insertDemande(demande);
         return result;
